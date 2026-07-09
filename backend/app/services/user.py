@@ -1,0 +1,79 @@
+import uuid
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.models.user import User
+from app.models.role import Role
+from app.models.doctor import Doctor
+from app.schemas.user import UserCreate
+from app.repositories.user import UserRepository, RoleRepository
+from app.core.security import get_password_hash
+from app.core.exceptions import EntityAlreadyExistsException, EntityNotFoundException
+
+class UserService:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+        self.user_repo = UserRepository(db)
+        self.role_repo = RoleRepository(db)
+
+    async def get_user_by_id(self, user_id: str) -> User:
+        user = await self.user_repo.get_by_id_with_role(user_id)
+        if not user:
+            raise EntityNotFoundException("User", user_id)
+        return user
+
+    async def create_staff_user(self, schema: UserCreate) -> User:
+        # Check duplicate
+        if await self.user_repo.get_by_email(schema.email):
+            raise EntityAlreadyExistsException("User", schema.email)
+        if await self.user_repo.get_by_username(schema.username):
+            raise EntityAlreadyExistsException("User", schema.username)
+
+        # Fetch designated role
+        role = await self.role_repo.get_by_name(schema.role_name.upper())
+        if not role:
+            # Create dynamically if not initialized yet
+            role = Role(
+                id=str(uuid.uuid4()),
+                name=schema.role_name.upper(),
+                description=f"Automated creation of {schema.role_name} role"
+            )
+            await self.role_repo.create(role)
+        new_user = User(
+            id=str(uuid.uuid4()),
+            email=schema.email,
+            username=schema.username,
+            hashed_password=get_password_hash(schema.password),
+            role_id=role.id,
+            is_active=False
+        )
+        await self.user_repo.create(new_user)
+        await self.db.flush()
+
+        if schema.role_name.upper() == "DOCTOR":
+            new_doctor = Doctor(
+                id=str(uuid.uuid4()),
+                user_id=new_user.id,
+                specialization=schema.specialization or "General Practice",
+                license_number=schema.license_number or f"LIC-{str(uuid.uuid4())[:8].upper()}",
+                consultation_fee=schema.consultation_fee or 0.0,
+                experience_years=schema.experience_years or 0
+            )
+            self.db.add(new_doctor)
+
+        await self.db.commit()
+        return await self.user_repo.get_by_id_with_role(new_user.id)
+
+    async def list_users(self, skip: int = 0, limit: int = 100) -> list[User]:
+        return await self.user_repo.get_all_with_role(skip, limit)
+
+    async def toggle_active(self, user_id: str) -> User:
+        user = await self.get_user_by_id(user_id)
+        user.is_active = not user.is_active
+        await self.db.commit()
+        return await self.get_user_by_id(user_id)
+
+    async def delete_user(self, user_id: str) -> None:
+        user = await self.get_user_by_id(user_id)
+        # Soft delete
+        import datetime
+        user.deleted_at = datetime.datetime.utcnow()
+        await self.db.commit()

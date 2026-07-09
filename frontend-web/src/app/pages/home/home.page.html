@@ -1,0 +1,70 @@
+<ion-content [forceOverscroll]="false">
+  <!-- Portal Selector Header with Background Image -->
+  <section class="bg-white border-b border-green-100 flex flex-col items-center">
+    <!-- Image rendered with no overlays/filters and aligned directly below header -->
+    <div class="w-full">
+      <img src="assets/doctor_bg.png" class="w-full h-auto object-contain" alt="Clinic Doctor Background">
+    </div>
+
+    <!-- Title and Subtitle positioned directly below the image in a clear block -->
+    <div class="max-w-3xl mx-auto space-y-4 py-8 px-6 text-center">
+      <h1 class="text-3xl md:text-5xl font-black tracking-tight text-slate-900">Clinic Management System</h1>
+      <p class="text-slate-600 text-sm md:text-base font-semibold leading-relaxed max-w-xl mx-auto">
+        Select a portal gateway below to access specific features and dashboards for each user role.
+      </p>
+    </div>
+  </section>
+
+  <!-- Button Portals Grid (Glassmorphic Blur style) -->
+  <section class="py-16 px-6 bg-slate-50 relative overflow-hidden">
+    <!-- Continuing background gradient -->
+    <div class="absolute inset-0 bg-gradient-to-b from-white to-slate-50 z-0"></div>
+
+    <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+      <!-- Administration Button Gateway -->
+      <button routerLink="/administration" class="flex flex-col items-center justify-center p-8 bg-white/40 backdrop-blur-md border border-white/60 hover:border-green-500/50 hover:bg-white/80 rounded-2xl transition space-y-3 group shadow-lg shadow-slate-100/50">
+        <span class="text-4xl group-hover:scale-110 transition duration-300">⚙️</span>
+        <span class="text-sm uppercase font-extrabold tracking-wider text-slate-700 group-hover:text-green-700">Administration</span>
+      </button>
+
+      <!-- Patient Button Gateway -->
+      <button routerLink="/patient" class="flex flex-col items-center justify-center p-8 bg-white/40 backdrop-blur-md border border-white/60 hover:border-green-500/50 hover:bg-white/80 rounded-2xl transition space-y-3 group shadow-lg shadow-slate-100/50">
+        <span class="text-4xl group-hover:scale-110 transition duration-300">🩹</span>
+        <span class="text-sm uppercase font-extrabold tracking-wider text-slate-700 group-hover:text-green-700">Patient Portal</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Static Information Sections (Just Headings and Summaries) -->
+  <section class="py-16 bg-slate-50 border-t border-slate-200/60 px-6 text-slate-800">
+    <div class="max-w-4xl mx-auto space-y-12">
+      
+      <!-- About Section -->
+      <div id="about-section" class="space-y-4 scroll-mt-24">
+        <h2 class="text-2xl font-black text-green-700">About Our Clinic</h2>
+        <p class="text-slate-600 text-sm leading-relaxed">
+          Our clinic provides high-standard outpatient clinical treatments, diagnostic path-labs, and pharmacy services. Our modern digital platform enables quick patient onboarding, real-time doctor availability checking, and instant prescription access.
+        </p>
+      </div>
+
+      <!-- Services Section -->
+      <div id="services-section" class="space-y-4 scroll-mt-24">
+        <h2 class="text-2xl font-black text-green-700">Clinical Services</h2>
+        <p class="text-slate-600 text-sm leading-relaxed">
+          Our departments include General Medicine Consultation, Cardiology Testing, Pediatric Wellness, and Orthopedic Care. Walk-in and online check-in queues are managed digitally through the centralized front-desk portal.
+        </p>
+      </div>
+
+      <!-- Contact Section -->
+      <div id="contact-section" class="space-y-4 scroll-mt-24">
+        <h2 class="text-2xl font-black text-green-700">Contact & Support</h2>
+        <p class="text-slate-600 text-sm leading-relaxed">
+          For technical issues regarding login or patient card issuance, contact the front-desk reception desk.
+          <br>
+          📍 Address: 123 Healthway Avenue, Suite 100 | 📞 Phone: +1-800-CLINIC-HELP
+        </p>
+      </div>
+
+    </div>
+  </section>
+</ion-content>
