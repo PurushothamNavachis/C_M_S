@@ -5,6 +5,7 @@ from app.models.role import Role
 from app.models.department import Department
 from app.models.doctor import Doctor
 from app.models.patient import Patient
+from app.models.lab_ac import LabAC
 from app.models.appointment import Appointment
 from app.models.consultation import Consultation
 from app.models.vitals import Vitals

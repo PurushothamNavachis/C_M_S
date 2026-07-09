@@ -10,7 +10,7 @@ import { ApiService } from '../../services/api';
 })
 export class AdministrationPage implements OnInit, OnDestroy {
   // Current active role perspective for testing
-  activePerspective: 'SUPER_ADMIN' | 'ADMIN' | 'RECEPTIONIST' | 'DOCTOR' = 'SUPER_ADMIN';
+  activePerspective: 'SUPER_ADMIN' | 'ADMIN' | 'RECEPTIONIST' | 'DOCTOR' | 'LAB_AC' = 'SUPER_ADMIN';
 
   // Clock properties
   currentTime = '';
@@ -23,8 +23,37 @@ export class AdministrationPage implements OnInit, OnDestroy {
   roleFilter = 'ALL';
   specializationFilter = '';
 
+  // Sidebar & Settings
+  sidebarOpen = false;
+  showSelfProfileModal = false;
+  showRegisterPatientModal = false;
+  selfProfileForm = { username: '', email: '', mobile_number: '', password: '' };
+
+  // Directory editing
+  showEditStaffModal = false;
+  selectedUserForEdit: any = null;
+  editStaffForm = {
+    username: '',
+    email: '',
+    mobile_number: '',
+    password: '',
+    specialization: '',
+    qualification: '',
+    license_number: '',
+    consultation_fee: 0,
+    experience_years: 0
+  };
+
   get filteredUsers() {
     return this.usersList.filter(user => {
+      if (user.role?.name === 'PATIENT') {
+        return false;
+      }
+      if (this.activePerspective === 'RECEPTIONIST') {
+        if (user.role?.name !== 'DOCTOR' && user.role?.name !== 'LAB_AC') {
+          return false;
+        }
+      }
       const matchesSearch = !this.searchTerm || 
                             user.username.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
                             user.email.toLowerCase().includes(this.searchTerm.toLowerCase());
@@ -49,14 +78,18 @@ export class AdministrationPage implements OnInit, OnDestroy {
         return { name: 'receptionist', role: 'Receptionist (RAC)', colorClass: 'bg-green-100 text-green-700 border-green-200' };
       case 'DOCTOR':
         return { name: 'doctor', role: 'Doctor', colorClass: 'bg-teal-100 text-teal-700 border-teal-200' };
+      case 'LAB_AC':
+        return { name: 'labassistant', role: 'Lab Assistant (Lab AC)', colorClass: 'bg-emerald-100 text-emerald-700 border-emerald-200' };
     }
   }
   registration = {
     email: '',
     username: '',
     password: '',
+    mobile_number: '',
     role_name: 'RECEPTIONIST',
     specialization: '',
+    qualification: '',
     license_number: '',
     consultation_fee: null as number | null,
     experience_years: null as number | null
@@ -74,6 +107,52 @@ export class AdministrationPage implements OnInit, OnDestroy {
   // Mock Consultations / Prescriptions Data for Doctor
   prescriptionsList: any[] = [];
   newPrescription = { patientName: '', diagnosis: '', medication: '', instructions: '' };
+
+  // Mock Notifications and Doctor Requests for Receptionist view
+  notificationsList = [
+    { id: 'n1', message: 'Dr. Abijith changed status to Active', time: '10 mins ago', read: false },
+    { id: 'n2', message: 'Lab report ready for patient John Doe', time: '25 mins ago', read: false },
+    { id: 'n3', message: 'New patient registration request from website portal', time: '1 hour ago', read: true }
+  ];
+
+  doctorRequestsList = [
+    { id: 'r1', doctorName: 'Dr. Abijith', patientName: 'John Doe', requestType: 'Urgent consultation booking request', status: 'Pending', time: '5 mins ago' },
+    { id: 'r2', doctorName: 'Dr. Shalini', patientName: 'Mary Smith', requestType: 'Priority vitals collection and scheduling', status: 'Pending', time: '15 mins ago' },
+    { id: 'r3', doctorName: 'Dr. Abijith', patientName: 'David Lee', requestType: 'Prepare billing summary for check-out', status: 'Completed', time: '40 mins ago' }
+  ];
+
+  get activeDoctors() {
+    return this.usersList.filter(u => u.role?.name === 'DOCTOR');
+  }
+
+  get activeLabACs() {
+    return this.usersList.filter(u => u.role?.name === 'LAB_AC');
+  }
+
+  get unreadNotificationsCount() {
+    return this.notificationsList.filter(n => !n.read).length;
+  }
+
+  get pendingRequestsCount() {
+    return this.doctorRequestsList.filter(r => r.status === 'Pending').length;
+  }
+
+  markNotificationRead(id: string) {
+    const notif = this.notificationsList.find(n => n.id === id);
+    if (notif) notif.read = true;
+  }
+
+  actionDoctorRequest(id: string, action: string) {
+    const req = this.doctorRequestsList.find(r => r.id === id);
+    if (req) {
+      req.status = action;
+      if (action === 'Completed') {
+        alert(`Successfully processed request: "${req.requestType}" for ${req.patientName}`);
+      } else if (action === 'Declined') {
+        alert(`Declined request: "${req.requestType}" for ${req.patientName}`);
+      }
+    }
+  }
 
   errorMessage = '';
   loading = false;
@@ -109,20 +188,20 @@ export class AdministrationPage implements OnInit, OnDestroy {
     this.clockInterval = setInterval(updateTime, 1000);
   }
 
-  changePerspective(role: 'SUPER_ADMIN' | 'ADMIN' | 'RECEPTIONIST' | 'DOCTOR') {
+  changePerspective(role: 'SUPER_ADMIN' | 'ADMIN' | 'RECEPTIONIST' | 'DOCTOR' | 'LAB_AC') {
     this.activePerspective = role;
     this.errorMessage = '';
-    if (role === 'SUPER_ADMIN' || role === 'ADMIN') {
+    if (role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'RECEPTIONIST') {
       this.loadUsers();
     }
   }
 
   loadUsers() {
     this.api.get('users').subscribe({
-      next: (data) => {
+      next: (data: any) => {
         this.usersList = data;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Failed to load users from backend', err);
       }
     });
@@ -133,7 +212,7 @@ export class AdministrationPage implements OnInit, OnDestroy {
       next: (data: any) => {
         this.patientsList = data;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Failed to load patients', err);
       }
     });
@@ -144,7 +223,7 @@ export class AdministrationPage implements OnInit, OnDestroy {
       next: (data: any) => {
         this.appointmentsList = data;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Failed to load appointments', err);
       }
     });
@@ -164,22 +243,24 @@ export class AdministrationPage implements OnInit, OnDestroy {
 
     this.loading = true;
     this.api.post('users', this.registration).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         this.loading = false;
         alert(`Successfully registered ${this.registration.role_name} user profile!`);
         this.registration = {
           email: '',
           username: '',
           password: '',
+          mobile_number: '',
           role_name: 'RECEPTIONIST',
           specialization: '',
+          qualification: '',
           license_number: '',
           consultation_fee: null,
           experience_years: null
         };
         this.loadUsers();
       },
-      error: (err) => {
+      error: (err: any) => {
         this.loading = false;
         const detail = err.error?.detail;
         if (Array.isArray(detail)) {
@@ -198,7 +279,7 @@ export class AdministrationPage implements OnInit, OnDestroy {
       next: () => {
         this.loadUsers();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Toggle active failed', err);
       }
     });
@@ -210,7 +291,7 @@ export class AdministrationPage implements OnInit, OnDestroy {
         next: () => {
           this.loadUsers();
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Delete user failed', err);
         }
       });
@@ -227,9 +308,10 @@ export class AdministrationPage implements OnInit, OnDestroy {
       next: () => {
         alert(`Patient ${this.newPatient.name} registered successfully!`);
         this.newPatient = { name: '', age: null, gender: 'Male', phone: '', email: '' };
+        this.showRegisterPatientModal = false;
         this.loadPatients();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Register patient failed', err);
         alert('Failed to register patient: ' + (err.error?.detail || err.message));
       }
@@ -252,7 +334,7 @@ export class AdministrationPage implements OnInit, OnDestroy {
         this.newAppointment = { id: '', patientName: '', doctorName: '', time: '', status: 'Scheduled' };
         this.loadAppointments();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Schedule appointment failed', err);
         alert('Failed to schedule appointment: ' + (err.error?.detail || err.message));
       }
@@ -264,7 +346,7 @@ export class AdministrationPage implements OnInit, OnDestroy {
       next: () => {
         this.loadAppointments();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Update appointment status failed', err);
       }
     });
@@ -299,7 +381,7 @@ export class AdministrationPage implements OnInit, OnDestroy {
         this.newPrescription = { patientName: '', diagnosis: '', medication: '', instructions: '' };
         this.loadAppointments();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Save consultation failed', err);
         alert('Failed to save consultation: ' + (err.error?.detail || err.message));
       }
@@ -332,5 +414,99 @@ export class AdministrationPage implements OnInit, OnDestroy {
     if (dbUser) {
       this.toggleUserActive(dbUser.id);
     }
+  }
+
+  openSelfProfile() {
+    const dbUser = this.usersList.find(u => u.role?.name === this.activePerspective);
+    if (dbUser) {
+      this.selfProfileForm = {
+        username: dbUser.username,
+        email: dbUser.email,
+        mobile_number: dbUser.mobile_number || '',
+        password: ''
+      };
+      this.showSelfProfileModal = true;
+    } else {
+      alert('Could not find user profile in database.');
+    }
+  }
+
+  saveSelfProfile() {
+    const dbUser = this.usersList.find(u => u.role?.name === this.activePerspective);
+    if (!dbUser) return;
+    
+    this.loading = true;
+    const payload: any = {
+      username: this.selfProfileForm.username,
+      email: this.selfProfileForm.email,
+      mobile_number: this.selfProfileForm.mobile_number
+    };
+    if (this.selfProfileForm.password && this.selfProfileForm.password.trim() !== '') {
+      payload.password = this.selfProfileForm.password;
+    }
+
+    (this.api as any).put(`users/${dbUser.id}`, payload).subscribe({
+      next: (res: any) => {
+        alert('Profile updated successfully!');
+        this.showSelfProfileModal = false;
+        this.loadUsers();
+      },
+      error: (err: any) => {
+        alert('Failed to update profile: ' + (err.error?.detail || err.message));
+        this.loading = false;
+      }
+    });
+  }
+
+  openEditStaff(user: any) {
+    this.selectedUserForEdit = user;
+    this.editStaffForm = {
+      username: user.username,
+      email: user.email,
+      mobile_number: user.mobile_number || '',
+      password: '',
+      specialization: user.doctor?.specialization || '',
+      qualification: user.lab_ac?.qualification || '',
+      license_number: (user.doctor?.license_number || user.lab_ac?.license_number) || '',
+      consultation_fee: user.doctor?.consultation_fee || 0,
+      experience_years: (user.doctor?.experience_years || user.lab_ac?.experience_years) || 0
+    };
+    this.showEditStaffModal = true;
+  }
+
+  saveEditStaff() {
+    if (!this.selectedUserForEdit) return;
+    
+    this.loading = true;
+    const payload: any = {
+      username: this.editStaffForm.username,
+      email: this.editStaffForm.email,
+      mobile_number: this.editStaffForm.mobile_number,
+      specialization: this.editStaffForm.specialization,
+      qualification: this.editStaffForm.qualification,
+      license_number: this.editStaffForm.license_number,
+      consultation_fee: this.editStaffForm.consultation_fee,
+      experience_years: this.editStaffForm.experience_years
+    };
+    if (this.editStaffForm.password && this.editStaffForm.password.trim() !== '') {
+      payload.password = this.editStaffForm.password;
+    }
+
+    (this.api as any).put(`users/${this.selectedUserForEdit.id}`, payload).subscribe({
+      next: (res: any) => {
+        alert('Staff profile updated successfully!');
+        this.showEditStaffModal = false;
+        this.selectedUserForEdit = null;
+        this.loadUsers();
+      },
+      error: (err: any) => {
+        alert('Failed to update staff profile: ' + (err.error?.detail || err.message));
+        this.loading = false;
+      }
+    });
+  }
+
+  showPatientDetailsPlaceholder() {
+    alert('Patients Details section: This option will display details for all patients in a future update.');
   }
 }

@@ -1,9 +1,11 @@
 <ion-content>
+
   <div class="bg-slate-50 text-slate-800 min-h-screen p-3 md:p-6 space-y-4">
     
     <!-- Simple Back Button & Session / Clock Bar -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full border-b border-slate-200/50 pb-3">
       <div class="flex items-center gap-3">
+
         <button routerLink="/home" class="px-3 py-1.5 bg-white border border-slate-200 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-sm">
           <span>← Back</span>
         </button>
@@ -65,14 +67,39 @@
           [class]="activePerspective === 'DOCTOR' ? 'px-3 py-1.5 bg-teal-600 text-white rounded-lg text-xs font-bold transition' : 'px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition'">
           🩺 Doctor
         </button>
+        <button 
+          (click)="changePerspective('LAB_AC')" 
+          [class]="activePerspective === 'LAB_AC' ? 'px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold transition' : 'px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition'">
+          🔬 Lab AC
+        </button>
       </div>
     </div>
 
     <!-- ========================================== -->
     <!-- 1. SUPER ADMIN VIEW -->
     <!-- ========================================== -->
-    <div *ngIf="activePerspective === 'SUPER_ADMIN'" class="space-y-3 max-w-4xl mx-auto w-full text-xs">
-      <div class="grid lg:grid-cols-3 gap-3">
+    <div *ngIf="activePerspective === 'SUPER_ADMIN'" class="max-w-4xl mx-auto w-full text-xs flex gap-3">
+      <!-- Left Settings Bar -->
+      <div [class]="sidebarOpen ? 'w-44' : 'w-12'" class="bg-white border border-slate-200 rounded-2xl p-2 shadow-sm transition-all duration-300 flex flex-col items-stretch self-start font-sans sticky top-4">
+        <button (click)="sidebarOpen = !sidebarOpen" class="p-2 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-sm font-bold transition flex items-center justify-center cursor-pointer mb-2" [title]="sidebarOpen ? 'Collapse Menu' : 'Expand Menu'">
+          <span>☰</span>
+        </button>
+        <div *ngIf="sidebarOpen" class="px-2 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-2">
+          Settings
+        </div>
+        <button (click)="showPatientDetailsPlaceholder()" class="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition flex items-center justify-start gap-2 cursor-pointer mb-1" [title]="'Patients Details'">
+          <span class="text-sm">📋</span>
+          <span *ngIf="sidebarOpen" class="font-bold text-xs ml-2">Patients Details</span>
+        </button>
+        <button (click)="openSelfProfile()" class="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition flex items-center justify-start gap-2 cursor-pointer" [title]="'Profile Settings'">
+          <span class="text-sm">👤</span>
+          <span *ngIf="sidebarOpen" class="font-bold text-xs ml-2">Profile Settings</span>
+        </button>
+      </div>
+
+      <!-- Right Dashboard Content -->
+      <div class="flex-1 space-y-3">
+        <div class="grid lg:grid-cols-3 gap-3">
         
         <!-- Registration Form Column -->
         <div class="bg-white border border-slate-200 p-3.5 rounded-xl shadow-sm space-y-3">
@@ -93,7 +120,7 @@
                 <option value="ADMIN">Admin</option>
                 <option value="RECEPTIONIST">Receptionist (RAC)</option>
                 <option value="DOCTOR">Doctor</option>
-                <option value="PATIENT">Patient</option>
+                <option value="LAB_AC">Lab Assistant (Lab AC)</option>
               </select>
             </div>
 
@@ -110,6 +137,11 @@
             <div class="space-y-1">
               <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Password</label>
               <input type="password" [(ngModel)]="registration.password" name="password" required class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="Min 6 characters"/>
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Mobile Number</label>
+              <input type="text" [(ngModel)]="registration.mobile_number" name="mobile_number" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="e.g. +91 9988776655"/>
             </div>
 
             <!-- Doctor-Specific Clinic Profile Fields (Only displayed for Doctor role) -->
@@ -135,6 +167,26 @@
                   <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Experience (Years)</label>
                   <input type="number" [(ngModel)]="registration.experience_years" name="experience_years" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="5"/>
                 </div>
+              </div>
+            </div>
+
+            <!-- Lab AC-Specific Fields (Only displayed for Lab AC role) -->
+            <div *ngIf="registration.role_name === 'LAB_AC'" class="space-y-2 border-t border-slate-100 pt-2 mt-2">
+              <div class="text-[10px] font-extrabold uppercase tracking-wider text-green-600">Lab Profile</div>
+              
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Qualification</label>
+                <input type="text" [(ngModel)]="registration.qualification" name="qualification" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="e.g. B.Sc MLT"/>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">License Number</label>
+                <input type="text" [(ngModel)]="registration.license_number" name="license_number" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="e.g. LAB-9982"/>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Experience (Years)</label>
+                <input type="number" [(ngModel)]="registration.experience_years" name="experience_years" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="e.g. 3"/>
               </div>
             </div>
 
@@ -177,7 +229,7 @@
                 <option value="ADMIN">Admin</option>
                 <option value="RECEPTIONIST">Receptionist (RAC)</option>
                 <option value="DOCTOR">Doctor</option>
-                <option value="PATIENT">Patient</option>
+                <option value="LAB_AC">Lab Assistant (Lab AC)</option>
               </select>
             </div>
             <div *ngIf="roleFilter === 'DOCTOR'" class="space-y-0.5">
@@ -196,8 +248,10 @@
                 <tr class="border-b border-slate-100 text-slate-400 text-[10px] uppercase tracking-wider">
                   <th class="py-2 font-semibold">User</th>
                   <th class="py-2 font-semibold">Role</th>
+                  <th class="py-2 font-semibold">Mobile Number</th>
                   <th class="py-2 font-semibold">Status</th>
                   <th *ngIf="roleFilter === 'DOCTOR'" class="py-2 font-semibold">Specialization</th>
+                  <th *ngIf="roleFilter === 'LAB_AC'" class="py-2 font-semibold">Qualification</th>
                   <th class="py-2 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
@@ -209,6 +263,15 @@
                   </td>
                   <td class="py-2">
                     <span class="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded text-[9px] font-semibold uppercase">{{ user.role?.name }}</span>
+                  </td>
+                  <td class="py-2">
+                    <div class="flex items-center gap-1">
+                      <span class="font-medium text-slate-700">{{ user.mobile_number || 'N/A' }}</span>
+                      <span *ngIf="user.mobile_number" class="inline-flex items-center gap-0.5 ml-1">
+                        <a [href]="'tel:' + user.mobile_number" class="px-1 bg-slate-100 border border-slate-200 text-blue-500 rounded text-[9px] font-bold transition hover:bg-slate-200 hover:scale-105" title="Call">📞</a>
+                        <a [href]="'https://wa.me/' + user.mobile_number.replace('+', '').replace(' ', '')" target="_blank" class="px-1 bg-slate-100 border border-slate-200 text-green-500 rounded text-[9px] font-bold transition hover:bg-slate-200 hover:scale-105" title="WhatsApp">💬</a>
+                      </span>
+                    </div>
                   </td>
                   <td class="py-2">
                     <span [class]="user.is_active ? 'px-1.5 py-0.5 bg-green-100 text-green-800 rounded text-[9px] font-semibold' : 'px-1.5 py-0.5 bg-red-100 text-red-800 rounded text-[9px] font-semibold'">
@@ -224,9 +287,18 @@
                       </button>
                     </div>
                   </td>
+                  <td *ngIf="roleFilter === 'LAB_AC'" class="py-2">
+                    <div class="flex items-center space-x-1.5">
+                      <span class="font-medium text-slate-700">{{ user.lab_ac?.qualification || 'Assistant' }}</span>
+                      <!-- Eye button for Lab AC details card -->
+                      <button (click)="viewUserDetails(user)" class="text-xs hover:scale-110 transition duration-150 cursor-pointer" title="View details">
+                        👁️
+                      </button>
+                    </div>
+                  </td>
                   <td class="py-2 text-right space-x-1.5">
-                    <button (click)="toggleUserActive(user.id)" class="text-[10px] px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded transition font-semibold">Toggle</button>
-                    <button (click)="deleteUser(user.id)" class="text-[10px] px-1.5 py-0.5 bg-red-50 hover:bg-red-100 text-red-600 rounded transition font-semibold">Delete</button>
+                    <button (click)="openEditStaff(user)" class="text-[10px] px-1.5 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded transition font-semibold">Edit</button>
+                    <button *ngIf="user.role?.name !== 'SUPER_ADMIN'" (click)="deleteUser(user.id)" class="text-[10px] px-1.5 py-0.5 bg-red-50 hover:bg-red-100 text-red-600 rounded transition font-semibold">Delete</button>
                   </td>
                 </tr>
               </tbody>
@@ -234,13 +306,34 @@
           </div>
         </div>
       </div>
+      </div> <!-- Closes the flex-1 container -->
     </div>
 
     <!-- ========================================== -->
     <!-- 2. ADMIN VIEW -->
     <!-- ========================================== -->
-    <div *ngIf="activePerspective === 'ADMIN'" class="space-y-3 max-w-4xl mx-auto w-full text-xs">
-      <div class="grid lg:grid-cols-3 gap-3">
+    <div *ngIf="activePerspective === 'ADMIN'" class="max-w-4xl mx-auto w-full text-xs flex gap-3">
+      <!-- Left Settings Bar -->
+      <div [class]="sidebarOpen ? 'w-44' : 'w-12'" class="bg-white border border-slate-200 rounded-2xl p-2 shadow-sm transition-all duration-300 flex flex-col items-stretch self-start font-sans sticky top-4">
+        <button (click)="sidebarOpen = !sidebarOpen" class="p-2 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-sm font-bold transition flex items-center justify-center cursor-pointer mb-2" [title]="sidebarOpen ? 'Collapse Menu' : 'Expand Menu'">
+          <span>☰</span>
+        </button>
+        <div *ngIf="sidebarOpen" class="px-2 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-2">
+          Settings
+        </div>
+        <button (click)="showPatientDetailsPlaceholder()" class="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition flex items-center justify-start gap-2 cursor-pointer mb-1" [title]="'Patients Details'">
+          <span class="text-sm">📋</span>
+          <span *ngIf="sidebarOpen" class="font-bold text-xs ml-2">Patients Details</span>
+        </button>
+        <button (click)="openSelfProfile()" class="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition flex items-center justify-start gap-2 cursor-pointer" [title]="'Profile Settings'">
+          <span class="text-sm">👤</span>
+          <span *ngIf="sidebarOpen" class="font-bold text-xs ml-2">Profile Settings</span>
+        </button>
+      </div>
+
+      <!-- Right Dashboard Content -->
+      <div class="flex-1 space-y-3">
+        <div class="grid lg:grid-cols-3 gap-3">
         
         <!-- Registration Form Column -->
         <div class="bg-white border border-slate-200 p-3.5 rounded-xl shadow-sm space-y-3">
@@ -259,6 +352,7 @@
                 class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-700 outline-none text-xs">
                 <option value="RECEPTIONIST">Receptionist (RAC)</option>
                 <option value="DOCTOR">Doctor</option>
+                <option value="LAB_AC">Lab Assistant (Lab AC)</option>
               </select>
             </div>
 
@@ -303,6 +397,26 @@
               </div>
             </div>
 
+            <!-- Lab AC-Specific Fields (Only displayed for Lab AC role) -->
+            <div *ngIf="registration.role_name === 'LAB_AC'" class="space-y-2 border-t border-slate-100 pt-2 mt-2">
+              <div class="text-[10px] font-extrabold uppercase tracking-wider text-blue-600">Lab Profile</div>
+              
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Qualification</label>
+                <input type="text" [(ngModel)]="registration.qualification" name="qualification" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="e.g. B.Sc MLT"/>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">License Number</label>
+                <input type="text" [(ngModel)]="registration.license_number" name="license_number" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="e.g. LAB-9982"/>
+              </div>
+
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Experience (Years)</label>
+                <input type="number" [(ngModel)]="registration.experience_years" name="experience_years" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="e.g. 3"/>
+              </div>
+            </div>
+
             <div *ngIf="errorMessage" class="bg-red-500/10 border border-red-500/20 text-red-500 p-2 rounded-lg text-[10px] font-semibold">
               ⚠️ {{ errorMessage }}
             </div>
@@ -337,8 +451,11 @@
                 [(ngModel)]="roleFilter" 
                 class="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs outline-none focus:border-blue-500 text-slate-700">
                 <option value="ALL">All Staff</option>
+                <option value="SUPER_ADMIN">Super Admin</option>
+                <option value="ADMIN">Admin</option>
                 <option value="RECEPTIONIST">Receptionist (RAC)</option>
                 <option value="DOCTOR">Doctor</option>
+                <option value="LAB_AC">Lab Assistant (Lab AC)</option>
               </select>
             </div>
             <div *ngIf="roleFilter === 'DOCTOR'" class="space-y-0.5">
@@ -357,26 +474,44 @@
                 <tr class="border-b border-slate-100 text-slate-400 text-[10px] uppercase tracking-wider">
                   <th class="py-2 font-semibold">Staff Member</th>
                   <th class="py-2 font-semibold">Role</th>
+                  <th class="py-2 font-semibold">Mobile Number</th>
                   <th class="py-2 font-semibold">Status</th>
                   <th *ngIf="roleFilter === 'DOCTOR'" class="py-2 font-semibold">Specialization</th>
+                  <th *ngIf="roleFilter === 'LAB_AC'" class="py-2 font-semibold">Qualification</th>
+                  <th class="py-2 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-50 text-[11px]">
                 <tr *ngFor="let user of filteredUsers">
-                  <td *ngIf="user.role?.name === 'DOCTOR' || user.role?.name === 'RECEPTIONIST'" class="py-2">
+                  <td class="py-2">
                     <div class="font-bold text-slate-800">{{ user.username }}</div>
                     <div class="text-[9px] text-slate-400">{{ user.email }}</div>
                   </td>
-                  <td *ngIf="user.role?.name === 'DOCTOR' || user.role?.name === 'RECEPTIONIST'" class="py-2">
+                  <td class="py-2">
                     <span class="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded text-[9px] font-semibold uppercase">{{ user.role?.name }}</span>
                   </td>
-                  <td *ngIf="user.role?.name === 'DOCTOR' || user.role?.name === 'RECEPTIONIST'" class="py-2">
-                    <span [class]="user.is_active ? 'text-green-600 font-bold' : 'text-slate-400 font-medium'">
+                  <td class="py-2">
+                    <div class="flex items-center gap-1">
+                      <span class="font-medium text-slate-700">{{ user.mobile_number || 'N/A' }}</span>
+                      <span *ngIf="user.mobile_number" class="inline-flex items-center gap-0.5 ml-1">
+                        <a [href]="'tel:' + user.mobile_number" class="px-1 bg-slate-100 border border-slate-200 text-blue-500 rounded text-[9px] font-bold transition hover:bg-slate-200 hover:scale-105" title="Call">📞</a>
+                        <a [href]="'https://wa.me/' + user.mobile_number.replace('+', '').replace(' ', '')" target="_blank" class="px-1 bg-slate-100 border border-slate-200 text-green-500 rounded text-[9px] font-bold transition hover:bg-slate-200 hover:scale-105" title="WhatsApp">💬</a>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="py-2">
+                    <span [class]="user.is_active ? 'px-1.5 py-0.5 bg-green-100 text-green-800 rounded text-[9px] font-semibold' : 'px-1.5 py-0.5 bg-red-100 text-red-800 rounded text-[9px] font-semibold'">
                       {{ user.is_active ? 'Active' : 'Inactive' }}
                     </span>
                   </td>
-                  <td *ngIf="(user.role?.name === 'DOCTOR' || user.role?.name === 'RECEPTIONIST') && roleFilter === 'DOCTOR'" class="py-2">
+                  <td *ngIf="roleFilter === 'DOCTOR'" class="py-2">
                     <span class="font-medium text-slate-700">{{ user.doctor?.specialization || 'General Practice' }}</span>
+                  </td>
+                  <td *ngIf="roleFilter === 'LAB_AC'" class="py-2">
+                    <span class="font-medium text-slate-700">{{ user.lab_ac?.qualification || 'Assistant' }}</span>
+                  </td>
+                  <td class="py-2 text-right">
+                    <button (click)="openEditStaff(user)" class="text-[10px] px-1.5 py-0.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded transition font-semibold cursor-pointer">Edit</button>
                   </td>
                 </tr>
               </tbody>
@@ -384,52 +519,166 @@
           </div>
         </div>
       </div>
+      </div> <!-- Closes the flex-1 container -->
     </div>
 
     <!-- ========================================== -->
     <!-- 3. RECEPTIONIST (RAC) VIEW -->
     <!-- ========================================== -->
-    <div *ngIf="activePerspective === 'RECEPTIONIST'" class="space-y-3 max-w-4xl mx-auto w-full text-xs">
-      <div class="grid lg:grid-cols-2 gap-3">
-      
-        <!-- Patient Registration and Appointment Scheduling -->
-        <div class="space-y-3">
-          
-          <!-- Register Patient Form -->
-          <div class="bg-white border border-slate-200 p-3.5 rounded-xl shadow-sm space-y-3">
+    <div *ngIf="activePerspective === 'RECEPTIONIST'" class="max-w-4xl mx-auto w-full text-xs flex gap-3">
+      <!-- Left Settings Bar -->
+      <div [class]="sidebarOpen ? 'w-44' : 'w-12'" class="bg-white border border-slate-200 rounded-2xl p-2 shadow-sm transition-all duration-300 flex flex-col items-stretch self-start font-sans sticky top-4">
+        <button (click)="sidebarOpen = !sidebarOpen" class="p-2 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-sm font-bold transition flex items-center justify-center cursor-pointer mb-2" [title]="sidebarOpen ? 'Collapse Menu' : 'Expand Menu'">
+          <span>☰</span>
+        </button>
+        <div *ngIf="sidebarOpen" class="px-2 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-2">
+          Settings
+        </div>
+        <button (click)="showRegisterPatientModal = true" class="w-full p-2 rounded-xl hover:bg-slate-50 text-green-600 hover:text-green-700 transition flex items-center justify-start gap-2 cursor-pointer mb-1" [title]="'Register New Patient'">
+          <span class="text-sm font-black text-center w-5">+</span>
+          <span *ngIf="sidebarOpen" class="font-bold text-xs ml-1.5">Register Patient</span>
+        </button>
+        <button (click)="showPatientDetailsPlaceholder()" class="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition flex items-center justify-start gap-2 cursor-pointer mb-1" [title]="'Patients Details'">
+          <span class="text-sm">📋</span>
+          <span *ngIf="sidebarOpen" class="font-bold text-xs ml-2">Patients Details</span>
+        </button>
+        <button (click)="openSelfProfile()" class="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition flex items-center justify-start gap-2 cursor-pointer" [title]="'Profile Settings'">
+          <span class="text-sm">👤</span>
+          <span *ngIf="sidebarOpen" class="font-bold text-xs ml-2">Profile Settings</span>
+        </button>
+      </div>
+
+      <!-- Right Dashboard Content -->
+      <div class="flex-1 space-y-3">
+
+        <!-- Staff Directory Panel -->
+        <div class="bg-white border border-slate-200 p-3.5 rounded-xl shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
             <div>
-              <h2 class="text-sm font-bold text-slate-900">Register New Patient</h2>
-              <p class="text-[10px] text-slate-400">RAC front-desk registration</p>
+              <h2 class="text-sm font-bold text-slate-900">Clinical & Laboratory Staff</h2>
+              <p class="text-[10px] text-slate-400">Doctors and laboratory assistants directory</p>
             </div>
-            <div class="grid grid-cols-2 gap-2">
-              <div class="space-y-0.5">
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Patient Name</label>
-                <input type="text" [(ngModel)]="newPatient.name" class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="e.g. John Doe"/>
-              </div>
-              <div class="space-y-0.5">
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Age</label>
-                <input type="number" [(ngModel)]="newPatient.age" class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="35"/>
-              </div>
-              <div class="space-y-0.5">
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Gender</label>
-                <select [(ngModel)]="newPatient.gender" class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-              <div class="space-y-0.5">
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Phone</label>
-                <input type="text" [(ngModel)]="newPatient.phone" class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="e.g. 555-1234"/>
-              </div>
-              <div class="col-span-2 space-y-0.5">
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Email Address</label>
-                <input type="email" [(ngModel)]="newPatient.email" class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="patient@example.com"/>
-              </div>
-            </div>
-            <button (click)="registerPatient()" class="w-full py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-xs transition">Register Patient</button>
+            <button (click)="loadUsers()" class="text-[10px] text-green-600 hover:text-green-800 font-bold flex items-center gap-1 transition">
+              🔄 Refresh List
+            </button>
           </div>
 
+          <!-- Search & Filter Controls -->
+          <div [class]="roleFilter === 'DOCTOR' ? 'grid grid-cols-1 sm:grid-cols-3 gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100' : 'grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100'">
+            <div class="space-y-0.5">
+              <label class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Search</label>
+              <input 
+                type="text" 
+                [(ngModel)]="searchTerm" 
+                class="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs outline-none focus:border-green-500" 
+                placeholder="Search staff..."/>
+            </div>
+            <div class="space-y-0.5">
+              <label class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Role</label>
+              <select 
+                [(ngModel)]="roleFilter" 
+                class="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs outline-none focus:border-green-500 text-slate-700">
+                <option value="ALL">All Roles</option>
+                <option value="DOCTOR">Doctor</option>
+                <option value="LAB_AC">Lab Assistant (Lab AC)</option>
+              </select>
+            </div>
+            <div *ngIf="roleFilter === 'DOCTOR'" class="space-y-0.5">
+              <label class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Specialization</label>
+              <input 
+                type="text" 
+                [(ngModel)]="specializationFilter" 
+                class="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs outline-none focus:border-green-500" 
+                placeholder="e.g. Cardiologist"/>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-100 text-slate-400 text-[10px] uppercase tracking-wider">
+                  <th class="py-2 font-semibold">Staff Member</th>
+                  <th class="py-2 font-semibold">Role</th>
+                  <th class="py-2 font-semibold">Mobile Number</th>
+                  <th class="py-2 font-semibold">Status</th>
+                  <th *ngIf="roleFilter === 'DOCTOR'" class="py-2 font-semibold">Specialization</th>
+                  <th *ngIf="roleFilter === 'LAB_AC'" class="py-2 font-semibold">Qualification</th>
+                  <th class="py-2 font-semibold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-50 text-[11px]">
+                <tr *ngFor="let user of filteredUsers">
+                  <td class="py-2">
+                    <div class="font-bold text-slate-800">{{ user.username }}</div>
+                    <div class="text-[9px] text-slate-400">{{ user.email }}</div>
+                  </td>
+                  <td class="py-2">
+                    <span class="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded text-[9px] font-semibold uppercase">{{ user.role?.name }}</span>
+                  </td>
+                  <td class="py-2">
+                    <div class="flex items-center gap-1">
+                      <span class="font-medium text-slate-700">{{ user.mobile_number || 'N/A' }}</span>
+                      <span *ngIf="user.mobile_number" class="inline-flex items-center gap-0.5 ml-1">
+                        <a [href]="'tel:' + user.mobile_number" class="px-1 bg-slate-100 border border-slate-200 text-blue-500 rounded text-[9px] font-bold transition hover:bg-slate-200 hover:scale-105" title="Call">📞</a>
+                        <a [href]="'https://wa.me/' + user.mobile_number.replace('+', '').replace(' ', '')" target="_blank" class="px-1 bg-slate-100 border border-slate-200 text-green-500 rounded text-[9px] font-bold transition hover:bg-slate-200 hover:scale-105" title="WhatsApp">💬</a>
+                      </span>
+                    </div>
+                  </td>
+                  <td class="py-2">
+                    <span [class]="user.is_active ? 'px-1.5 py-0.5 bg-green-100 text-green-800 rounded text-[9px] font-semibold' : 'px-1.5 py-0.5 bg-red-100 text-red-800 rounded text-[9px] font-semibold'">
+                      {{ user.is_active ? 'Active' : 'Inactive' }}
+                    </span>
+                  </td>
+                  <td *ngIf="roleFilter === 'DOCTOR'" class="py-2">
+                    <span class="font-medium text-slate-700">{{ user.doctor?.specialization || 'General Practice' }}</span>
+                  </td>
+                  <td *ngIf="roleFilter === 'LAB_AC'" class="py-2">
+                    <span class="font-medium text-slate-700">{{ user.lab_ac?.qualification || 'Assistant' }}</span>
+                  </td>
+                  <td class="py-2 text-right">
+                    <button (click)="viewUserDetails(user)" class="text-[10px] px-2 py-0.5 bg-green-50 hover:bg-green-100 text-green-600 rounded transition font-semibold cursor-pointer">👁️ View Details</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Active Check-In Queue Board -->
+        <div class="bg-white border border-slate-200 p-3.5 rounded-xl shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900">Active Queue</h2>
+              <p class="text-[10px] text-slate-400">Patients checked in and waiting for clinical consultation</p>
+            </div>
+            <span class="px-2 py-0.5 bg-green-500/10 text-green-700 rounded text-[9px] font-extrabold uppercase border border-green-200/50">
+              {{ appointmentsList.length }} Registered Slot(s)
+            </span>
+          </div>
+
+          <div class="border-t border-slate-100 pt-3">
+            <div *ngIf="appointmentsList.length === 0" class="text-xs text-slate-400 italic text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+              No appointments scheduled for today yet.
+            </div>
+            <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+              <div *ngFor="let apt of appointmentsList" class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex flex-col justify-between gap-3 hover:border-slate-300 transition">
+                <div class="space-y-1">
+                  <div class="font-bold text-slate-800 text-[11px]">{{ apt.patientName }}</div>
+                  <div class="text-[10px] text-slate-400 leading-normal">Meeting with <b>{{ apt.doctorName }}</b> at <span class="font-semibold text-slate-600">{{ apt.time }}</span></div>
+                </div>
+                <div class="flex items-center justify-between border-t border-slate-100 pt-2">
+                  <span [class]="apt.status === 'Checked In' ? 'px-1.5 py-0.5 bg-green-100 text-green-800 text-[8px] font-bold rounded' : 'px-1.5 py-0.5 bg-amber-100 text-amber-800 text-[8px] font-bold rounded'">
+                    {{ apt.status }}
+                  </span>
+                  <button *ngIf="apt.status !== 'Checked In'" (click)="updateAppointmentStatus(apt.id, 'Checked In')" class="text-[9px] bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded-lg hover:bg-slate-100 transition shadow-sm font-semibold">Check In</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Appointment Scheduling & Patient Records Grid -->
+        <div class="grid lg:grid-cols-2 gap-3">
           <!-- Schedule Appointment Form -->
           <div class="bg-white border border-slate-200 p-3.5 rounded-xl shadow-sm space-y-3">
             <div>
@@ -453,32 +702,13 @@
             <button (click)="scheduleAppointment()" class="w-full py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-xs transition">Book Slot</button>
           </div>
 
-        </div>
-
-        <!-- Patients and Queue Lists -->
-        <div class="space-y-3">
-          
-          <!-- Active Check-In Queue -->
-          <div class="bg-white border border-slate-200 p-3.5 rounded-xl shadow-sm space-y-3">
-            <h2 class="text-sm font-bold text-slate-900">Active Queue</h2>
-            <div class="space-y-2">
-              <div *ngFor="let apt of appointmentsList" class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
-                <div>
-                  <div class="font-bold text-slate-800 text-[11px]">{{ apt.patientName }}</div>
-                  <div class="text-[10px] text-slate-400">Meeting with <b>{{ apt.doctorName }}</b> at {{ apt.time }}</div>
-                </div>
-                <div class="flex items-center gap-1.5">
-                  <span class="px-1.5 py-0.5 bg-green-100 text-green-800 text-[9px] font-bold rounded">{{ apt.status }}</span>
-                  <button *ngIf="apt.status !== 'Checked In'" (click)="updateAppointmentStatus(apt.id, 'Checked In')" class="text-[10px] bg-white border border-slate-200 text-slate-600 px-1.5 py-0.5 rounded hover:bg-slate-100 transition">Check In</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
           <!-- Registered Patient List -->
           <div class="bg-white border border-slate-200 p-3.5 rounded-xl shadow-sm space-y-3">
             <h2 class="text-sm font-bold text-slate-900">Patient Records</h2>
-            <ul class="divide-y divide-slate-100 text-xs">
+            <div *ngIf="patientsList.length === 0" class="text-xs text-slate-400 italic text-center py-6">
+              No patients registered yet.
+            </div>
+            <ul class="divide-y divide-slate-100 text-xs max-h-48 overflow-y-auto pr-1">
               <li *ngFor="let p of patientsList" class="py-2 flex justify-between items-center">
                 <div>
                   <div class="font-semibold text-slate-800 text-[11px]">{{ p.name }} ({{ p.age }}y/o, {{ p.gender }})</div>
@@ -488,17 +718,32 @@
               </li>
             </ul>
           </div>
-
         </div>
 
-      </div>
+      </div> <!-- Closes the flex-1 container -->
     </div>
 
     <!-- ========================================== -->
     <!-- 4. DOCTOR VIEW -->
     <!-- ========================================== -->
-    <div *ngIf="activePerspective === 'DOCTOR'" class="space-y-3 max-w-4xl mx-auto w-full text-xs">
-      <div class="grid lg:grid-cols-2 gap-3">
+    <div *ngIf="activePerspective === 'DOCTOR'" class="max-w-4xl mx-auto w-full text-xs flex gap-3">
+      <!-- Left Settings Bar -->
+      <div [class]="sidebarOpen ? 'w-44' : 'w-12'" class="bg-white border border-slate-200 rounded-2xl p-2 shadow-sm transition-all duration-300 flex flex-col items-stretch self-start font-sans sticky top-4">
+        <button (click)="sidebarOpen = !sidebarOpen" class="p-2 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-sm font-bold transition flex items-center justify-center cursor-pointer mb-2" [title]="sidebarOpen ? 'Collapse Menu' : 'Expand Menu'">
+          <span>☰</span>
+        </button>
+        <div *ngIf="sidebarOpen" class="px-2 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-2">
+          Settings
+        </div>
+        <button (click)="openSelfProfile()" class="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition flex items-center justify-start gap-2 cursor-pointer" [title]="'Profile Settings'">
+          <span class="text-sm">👤</span>
+          <span *ngIf="sidebarOpen" class="font-bold text-xs ml-2">Profile Settings</span>
+        </button>
+      </div>
+
+      <!-- Right Dashboard Content -->
+      <div class="flex-1 space-y-3">
+        <div class="grid lg:grid-cols-2 gap-3">
         
         <!-- Consultations Queue & Prescription Form -->
         <div class="space-y-3">
@@ -567,7 +812,65 @@
         </div>
 
       </div>
+      </div> <!-- Closes the flex-1 container -->
     </div>
+
+  <!-- ========================================== -->
+  <!-- 5. LAB AC VIEW -->
+  <!-- ========================================== -->
+  <div *ngIf="activePerspective === 'LAB_AC'" class="max-w-4xl mx-auto w-full text-xs flex gap-3">
+    <!-- Left Settings Bar (Toggle Bar) -->
+    <div [class]="sidebarOpen ? 'w-44' : 'w-12'" class="bg-white border border-slate-200 rounded-2xl p-2 shadow-sm transition-all duration-300 flex flex-col items-stretch self-start font-sans sticky top-4">
+      <button (click)="sidebarOpen = !sidebarOpen" class="p-2 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-sm font-bold transition flex items-center justify-center cursor-pointer mb-2" [title]="sidebarOpen ? 'Collapse Menu' : 'Expand Menu'">
+        <span>☰</span>
+      </button>
+
+      <div class="flex flex-col gap-1">
+        <!-- Profile Settings Button -->
+        <button (click)="openSelfProfile()" class="w-full px-2.5 py-2 hover:bg-slate-50 rounded-xl font-bold flex items-center gap-2.5 transition text-slate-700 hover:text-slate-900 cursor-pointer text-left" title="Profile Settings">
+          <span>👤</span>
+          <span *ngIf="sidebarOpen" class="truncate">Profile Settings</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Workspace (Lab AC Placeholder) -->
+    <div class="flex-1 space-y-3">
+      <!-- Banner Profile Info Card -->
+      <div class="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-4 text-white shadow-md relative overflow-hidden flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="space-y-1 z-10">
+          <span class="px-2 py-0.5 bg-emerald-500/30 border border-emerald-400/30 rounded text-[9px] font-extrabold uppercase tracking-wider">Workspace</span>
+          <h1 class="text-base font-black tracking-tight flex items-center gap-1.5">🔬 Lab Associate Dashboard</h1>
+          <p class="text-[10px] text-emerald-100/90 max-w-sm">Manage laboratory requests, update patient diagnostic reports, and configure system preferences.</p>
+        </div>
+        <div class="flex items-center gap-2 z-10">
+          <button 
+            (click)="toggleSelfActive()"
+            [class]="sessionUserStatus ? 'px-3 py-1 bg-white hover:bg-slate-50 text-emerald-700 font-bold border border-white rounded-lg shadow transition cursor-pointer text-[10px]' : 'px-3 py-1 bg-red-600 hover:bg-red-700 text-white font-bold border border-red-500 rounded-lg shadow transition cursor-pointer text-[10px]'">
+            {{ sessionUserStatus ? '🟢 Active' : '🔴 Inactive' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Placeholder workspace cards -->
+      <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm space-y-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🔬</span>
+          <div>
+            <h2 class="text-sm font-bold text-slate-900">Lab Diagnostic Controls</h2>
+            <p class="text-[10px] text-slate-400 font-medium">Configure lab workspace and incoming diagnostic report listings.</p>
+          </div>
+        </div>
+        <div class="border-t border-slate-100 pt-3">
+          <div class="p-6 bg-slate-50 border border-dashed border-slate-200 rounded-xl text-center space-y-2">
+            <span class="text-3xl block">🚧</span>
+            <h3 class="font-bold text-slate-700 text-xs">Diagnostic Workspace is Under Construction</h3>
+            <p class="text-[10px] text-slate-400 max-w-xs mx-auto">This dashboard screen will be populated with pending laboratory tests, report submissions, and patient file details in a future update.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   </div>
   <!-- Confidential Doctor Details Card Modal (Super Admin only can trigger) -->
@@ -630,10 +933,333 @@
           </div>
         </div>
 
+        <!-- Lab AC details if role is LAB_AC -->
+        <div *ngIf="selectedUserForDetails.role?.name === 'LAB_AC'" class="bg-teal-50 border border-teal-100 rounded-lg p-3 space-y-2 mt-2">
+          <div class="text-[10px] font-bold text-teal-700 uppercase tracking-wider mb-1">Lab Profile</div>
+          
+          <div class="grid grid-cols-2 gap-3 text-[11px]">
+            <div>
+              <div class="text-slate-400 font-bold uppercase text-[9px] tracking-wider mb-0.5">Qualification</div>
+              <div class="font-bold text-slate-800">{{ selectedUserForDetails.lab_ac?.qualification || 'N/A' }}</div>
+            </div>
+            <div>
+              <div class="text-slate-400 font-bold uppercase text-[9px] tracking-wider mb-0.5">License Number</div>
+              <div class="font-semibold text-slate-700 font-mono text-[10px]">{{ selectedUserForDetails.lab_ac?.license_number || 'N/A' }}</div>
+            </div>
+            <div>
+              <div class="text-slate-400 font-bold uppercase text-[9px] tracking-wider mb-0.5">Experience</div>
+              <div class="font-bold text-slate-800">{{ selectedUserForDetails.lab_ac?.experience_years !== undefined ? selectedUserForDetails.lab_ac?.experience_years : '0' }} Years</div>
+            </div>
+          </div>
+        </div>
+
         <!-- Action Button to close -->
         <div class="pt-3 border-t border-slate-100 flex justify-end">
           <button (click)="closeUserDetails()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold transition">Close Profile</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Self Profile Modal (Profile Settings) -->
+  <div *ngIf="showSelfProfileModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden text-xs transition duration-200 flex flex-col font-sans">
+      <!-- Modal Header -->
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+        <div class="flex items-center gap-2">
+          <span class="text-base">👤</span>
+          <h3 class="font-black text-slate-900 text-sm tracking-tight">Profile Settings</h3>
+        </div>
+        <button (click)="showSelfProfileModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-base transition-colors">&times;</button>
+      </div>
+
+      <!-- Modal Body -->
+      <form (submit)="saveSelfProfile()" class="p-5 space-y-4">
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Username</label>
+          <input 
+            type="text" 
+            [(ngModel)]="selfProfileForm.username" 
+            name="username"
+            required
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition" 
+            placeholder="Username" />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
+          <input 
+            type="email" 
+            [(ngModel)]="selfProfileForm.email" 
+            name="email"
+            required
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition" 
+            placeholder="email@example.com" />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mobile Number</label>
+          <input 
+            type="text" 
+            [(ngModel)]="selfProfileForm.mobile_number" 
+            name="mobile_number"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition" 
+            placeholder="e.g. +91 9988776655" />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">New Password</label>
+          <input 
+            type="password" 
+            [(ngModel)]="selfProfileForm.password" 
+            name="password"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition" 
+            placeholder="Leave blank to keep current" />
+          <p class="text-[9px] text-slate-400 italic">Minimum 6 characters, only fill if changing password.</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+          <button 
+            type="button" 
+            (click)="showSelfProfileModal = false" 
+            class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition">
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            [disabled]="loading"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition disabled:opacity-50">
+            {{ loading ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Edit Staff Profile Modal (Admin & Super Admin) -->
+  <div *ngIf="showEditStaffModal && selectedUserForEdit" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden text-xs transition duration-200 flex flex-col font-sans">
+      <!-- Modal Header -->
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+        <div class="flex items-center gap-2">
+          <span class="text-base">⚙️</span>
+          <h3 class="font-black text-slate-900 text-sm tracking-tight">Edit Member Profile</h3>
+        </div>
+        <button (click)="showEditStaffModal = false; selectedUserForEdit = null" class="text-slate-400 hover:text-slate-600 font-bold text-base transition-colors">&times;</button>
+      </div>
+
+      <!-- Modal Body -->
+      <form (submit)="saveEditStaff()" class="p-5 space-y-4 max-h-[75vh] overflow-y-auto">
+        
+        <!-- Display Role -->
+        <div class="bg-slate-50 border border-slate-200 p-3 rounded-xl flex items-center justify-between">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Role Type</span>
+          <span class="px-2 py-0.5 bg-slate-200 text-slate-800 rounded-md text-[9px] font-bold uppercase tracking-wider">{{ selectedUserForEdit.role?.name }}</span>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Username</label>
+          <input 
+            type="text" 
+            [(ngModel)]="editStaffForm.username" 
+            name="username"
+            required
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition" />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
+          <input 
+            type="email" 
+            [(ngModel)]="editStaffForm.email" 
+            name="email"
+            required
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition" />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mobile Number</label>
+          <input 
+            type="text" 
+            [(ngModel)]="editStaffForm.mobile_number" 
+            name="mobile_number"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition" 
+            placeholder="e.g. +91 9988776655" />
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Reset Password</label>
+          <input 
+            type="password" 
+            [(ngModel)]="editStaffForm.password" 
+            name="password"
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-blue-500 focus:bg-white transition" 
+            placeholder="Leave blank to keep current" />
+          <p class="text-[9px] text-slate-400 italic">Minimum 6 characters, only fill if updating password.</p>
+        </div>
+
+        <!-- Doctor fields if user is DOCTOR -->
+        <div *ngIf="selectedUserForEdit.role?.name === 'DOCTOR'" class="bg-purple-50/50 border border-purple-100/50 rounded-xl p-4 space-y-3">
+          <div class="text-[10px] font-bold text-purple-700 uppercase tracking-wider mb-2">Doctor Clinical Details</div>
+          
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Specialization</label>
+            <input 
+              type="text" 
+              [(ngModel)]="editStaffForm.specialization" 
+              name="specialization"
+              class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-purple-500 transition" />
+          </div>
+
+          <div *ngIf="activePerspective !== 'ADMIN'" class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">License Number</label>
+            <input 
+              type="text" 
+              [(ngModel)]="editStaffForm.license_number" 
+              name="license_number"
+              class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-purple-500 transition" />
+          </div>
+
+          <div *ngIf="activePerspective !== 'ADMIN'" class="grid grid-cols-2 gap-3">
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Consultation Fee ($)</label>
+              <input 
+                type="number" 
+                [(ngModel)]="editStaffForm.consultation_fee" 
+                name="consultation_fee"
+                class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-purple-500 transition" />
+            </div>
+
+            <div class="space-y-1">
+              <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Experience (Years)</label>
+              <input 
+                type="number" 
+                [(ngModel)]="editStaffForm.experience_years" 
+                name="experience_years"
+                class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-purple-500 transition" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Lab AC fields if user is LAB_AC -->
+        <div *ngIf="selectedUserForEdit.role?.name === 'LAB_AC'" class="bg-teal-50/50 border border-teal-100/50 rounded-xl p-4 space-y-3">
+          <div class="text-[10px] font-bold text-teal-700 uppercase tracking-wider mb-2">Lab Associate Details</div>
+          
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Qualification</label>
+            <input 
+              type="text" 
+              [(ngModel)]="editStaffForm.qualification" 
+              name="qualification"
+              class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-teal-500 transition" />
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">License Number</label>
+            <input 
+              type="text" 
+              [(ngModel)]="editStaffForm.license_number" 
+              name="license_number"
+              class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-teal-500 transition" />
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Experience (Years)</label>
+            <input 
+              type="number" 
+              [(ngModel)]="editStaffForm.experience_years" 
+              name="experience_years"
+              class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-teal-500 transition" />
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+          <button 
+            type="button" 
+            (click)="showEditStaffModal = false; selectedUserForEdit = null" 
+            class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition">
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            [disabled]="loading"
+            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition disabled:opacity-50">
+            {{ loading ? 'Saving...' : 'Save Changes' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Register New Patient Modal (RAC Desk) -->
+  <div *ngIf="showRegisterPatientModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden text-xs transition duration-200 flex flex-col font-sans">
+      <!-- Modal Header -->
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+        <div class="flex items-center gap-2">
+          <span class="text-base text-green-600 font-black">+</span>
+          <h3 class="font-black text-slate-900 text-sm tracking-tight">Register New Patient</h3>
+        </div>
+        <button (click)="showRegisterPatientModal = false" class="text-slate-400 hover:text-slate-600 font-bold text-base transition-colors">&times;</button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 space-y-4">
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Patient Name</label>
+          <input 
+            type="text" 
+            [(ngModel)]="newPatient.name" 
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-green-500 focus:bg-white transition" 
+            placeholder="e.g. John Doe"/>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Age</label>
+            <input 
+              type="number" 
+              [(ngModel)]="newPatient.age" 
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-green-500 focus:bg-white transition" 
+              placeholder="35"/>
+          </div>
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Gender</label>
+            <select 
+              [(ngModel)]="newPatient.gender" 
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-green-500 focus:bg-white transition">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Phone</label>
+          <input 
+            type="text" 
+            [(ngModel)]="newPatient.phone" 
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-green-500 focus:bg-white transition" 
+            placeholder="e.g. 555-1234"/>
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Email Address</label>
+          <input 
+            type="email" 
+            [(ngModel)]="newPatient.email" 
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-green-500 focus:bg-white transition" 
+            placeholder="patient@example.com"/>
+        </div>
+
+        <button 
+          (click)="registerPatient()" 
+          class="w-full py-2 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl text-xs transition shadow-sm mt-2">
+          Register Patient
+        </button>
       </div>
     </div>
   </div>

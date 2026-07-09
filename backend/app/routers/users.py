@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
-from app.schemas.user import UserCreate, UserResponse
+from app.schemas.user import UserCreate, UserResponse, UserUpdate
 from app.models.user import User
 from app.services.user import UserService
 from app.dependencies.auth import get_current_user, RoleChecker
@@ -37,3 +37,9 @@ async def delete_user(user_id: str, db: AsyncSession = Depends(get_db)):
     user_service = UserService(db)
     await user_service.delete_user(user_id)
     return {"detail": "User successfully deleted"}
+
+@router.put("/{user_id}", response_model=UserResponse)
+async def update_user(user_id: str, schema: UserUpdate, db: AsyncSession = Depends(get_db)):
+    """Update a user's details and their doctor profile (if any)."""
+    user_service = UserService(db)
+    return await user_service.update_user(user_id, schema)

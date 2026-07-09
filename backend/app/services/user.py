@@ -3,7 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.models.role import Role
 from app.models.doctor import Doctor
-from app.schemas.user import UserCreate
+from app.models.lab_ac import LabAC
+from app.schemas.user import UserCreate, UserUpdate
 from app.repositories.user import UserRepository, RoleRepository
 from app.core.security import get_password_hash
 from app.core.exceptions import EntityAlreadyExistsException, EntityNotFoundException
@@ -41,6 +42,7 @@ class UserService:
             id=str(uuid.uuid4()),
             email=schema.email,
             username=schema.username,
+            mobile_number=schema.mobile_number,
             hashed_password=get_password_hash(schema.password),
             role_id=role.id,
             is_active=False
@@ -58,6 +60,15 @@ class UserService:
                 experience_years=schema.experience_years or 0
             )
             self.db.add(new_doctor)
+        elif schema.role_name.upper() == "LAB_AC":
+            new_lab_ac = LabAC(
+                id=str(uuid.uuid4()),
+                user_id=new_user.id,
+                qualification=schema.qualification or "Assistant",
+                license_number=schema.license_number or f"LAB-{str(uuid.uuid4())[:8].upper()}",
+                experience_years=schema.experience_years or 0
+            )
+            self.db.add(new_lab_ac)
 
         await self.db.commit()
         return await self.user_repo.get_by_id_with_role(new_user.id)
@@ -77,3 +88,70 @@ class UserService:
         import datetime
         user.deleted_at = datetime.datetime.utcnow()
         await self.db.commit()
+
+    async def update_user(self, user_id: str, schema: UserUpdate) -> User:
+        user = await self.get_user_by_id(user_id)
+        
+        if schema.username is not None and schema.username != user.username:
+            if await self.user_repo.get_by_username(schema.username):
+                raise EntityAlreadyExistsException("User", schema.username)
+        if schema.email is not None and schema.email != user.email:
+            if await self.user_repo.get_by_email(schema.email):
+                raise EntityAlreadyExistsException("User", schema.email)
+
+        if schema.username is not None:
+            user.username = schema.username
+        if schema.email is not None:
+            user.email = schema.email
+        if schema.mobile_number is not None:
+            user.mobile_number = schema.mobile_number
+        if schema.password is not None and schema.password.strip() != "":
+            from app.core.security import get_password_hash
+            user.hashed_password = get_password_hash(schema.password)
+            
+        # Update doctor profile if user has DOCTOR role
+        if user.role.name == "DOCTOR":
+            if not user.doctor:
+                # If doctor record is missing, create one dynamically
+                from app.models.doctor import Doctor
+                import uuid
+                doctor = Doctor(
+                    id=str(uuid.uuid4()),
+                    user_id=user.id,
+                    specialization=schema.specialization or "General Practice",
+                    license_number=schema.license_number or f"LIC-{str(uuid.uuid4())[:8].upper()}",
+                    consultation_fee=schema.consultation_fee or 0.0,
+                    experience_years=schema.experience_years or 0
+                )
+                self.db.add(doctor)
+            else:
+                if schema.specialization is not None:
+                    user.doctor.specialization = schema.specialization
+                if schema.license_number is not None:
+                    user.doctor.license_number = schema.license_number
+                if schema.consultation_fee is not None:
+                    user.doctor.consultation_fee = schema.consultation_fee
+                if schema.experience_years is not None:
+                    user.doctor.experience_years = schema.experience_years
+        elif user.role.name == "LAB_AC":
+            if not user.lab_ac:
+                from app.models.lab_ac import LabAC
+                import uuid
+                lab_ac = LabAC(
+                    id=str(uuid.uuid4()),
+                    user_id=user.id,
+                    qualification=schema.qualification or "Assistant",
+                    license_number=schema.license_number or f"LAB-{str(uuid.uuid4())[:8].upper()}",
+                    experience_years=schema.experience_years or 0
+                )
+                self.db.add(lab_ac)
+            else:
+                if schema.qualification is not None:
+                    user.lab_ac.qualification = schema.qualification
+                if schema.license_number is not None:
+                    user.lab_ac.license_number = schema.license_number
+                if schema.experience_years is not None:
+                    user.lab_ac.experience_years = schema.experience_years
+                    
+        await self.db.commit()
+        return await self.get_user_by_id(user.id)

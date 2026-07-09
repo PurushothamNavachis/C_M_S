@@ -13,7 +13,7 @@ class UserRepository(BaseRepository[User]):
         query = (
             select(User)
             .where(User.email == email, User.deleted_at.is_(None))
-            .options(selectinload(User.role), selectinload(User.doctor))
+            .options(selectinload(User.role), selectinload(User.doctor), selectinload(User.lab_ac))
         )
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
@@ -22,7 +22,7 @@ class UserRepository(BaseRepository[User]):
         query = (
             select(User)
             .where(User.username == username, User.deleted_at.is_(None))
-            .options(selectinload(User.role), selectinload(User.doctor))
+            .options(selectinload(User.role), selectinload(User.doctor), selectinload(User.lab_ac))
         )
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
@@ -31,7 +31,7 @@ class UserRepository(BaseRepository[User]):
         query = (
             select(User)
             .where(User.id == user_id, User.deleted_at.is_(None))
-            .options(selectinload(User.role), selectinload(User.doctor))
+            .options(selectinload(User.role), selectinload(User.doctor), selectinload(User.lab_ac))
         )
         result = await self.db.execute(query)
         return result.scalar_one_or_none()
@@ -40,7 +40,7 @@ class UserRepository(BaseRepository[User]):
         query = (
             select(User)
             .where(User.deleted_at.is_(None))
-            .options(selectinload(User.role), selectinload(User.doctor))
+            .options(selectinload(User.role), selectinload(User.doctor), selectinload(User.lab_ac))
             .offset(skip)
             .limit(limit)
         )

@@ -10,6 +10,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(150), unique=True, index=True, nullable=False)
     username: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    mobile_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     role_id: Mapped[str] = mapped_column(String(36), ForeignKey("roles.id", ondelete="RESTRICT"), nullable=False)
     
@@ -19,6 +20,7 @@ class User(Base):
     # Relationships
     role: Mapped["Role"] = relationship("Role", back_populates="users")
     doctor: Mapped["Doctor"] = relationship("Doctor", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    lab_ac: Mapped["LabAC"] = relationship("LabAC", back_populates="user", uselist=False, cascade="all, delete-orphan")
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
         "RefreshToken", 
         back_populates="user", 
