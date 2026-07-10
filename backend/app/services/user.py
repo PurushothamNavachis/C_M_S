@@ -109,8 +109,14 @@ class UserService:
             from app.core.security import get_password_hash
             user.hashed_password = get_password_hash(schema.password)
             
-        # Update doctor profile if user has DOCTOR role
-        if user.role.name == "DOCTOR":
+        # Update profile based on role
+        if user.role.name == "PATIENT":
+            if user.patient:
+                if schema.mobile_number is not None:
+                    user.patient.phone = schema.mobile_number
+                if schema.blood_group is not None:
+                    user.patient.blood_group = schema.blood_group
+        elif user.role.name == "DOCTOR":
             if not user.doctor:
                 # If doctor record is missing, create one dynamically
                 from app.models.doctor import Doctor

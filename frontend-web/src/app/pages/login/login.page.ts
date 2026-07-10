@@ -23,12 +23,27 @@ export class LoginPage {
     this.loading = true;
     this.api.post('auth/login', this.credentials).subscribe({
       next: (response) => {
-        this.loading = false;
         // Save token to localstorage
         localStorage.setItem('access_token', response.access_token);
         localStorage.setItem('refresh_token', response.refresh_token);
-        this.router.navigate(['/administration']);
-        alert('Login Successful!');
+        
+        // Fetch user profile to route properly
+        this.api.get('users/me').subscribe({
+          next: (user) => {
+            this.loading = false;
+            alert('Login Successful!');
+            if (user.role?.name === 'PATIENT') {
+              this.router.navigate(['/patient']);
+            } else {
+              this.router.navigate(['/administration']);
+            }
+          },
+          error: (err) => {
+            this.loading = false;
+            this.router.navigate(['/administration']);
+            alert('Login Successful!');
+          }
+        });
       },
       error: (err) => {
         this.loading = false;

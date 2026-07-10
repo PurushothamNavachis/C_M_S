@@ -1,5 +1,5 @@
-from datetime import datetime
-from pydantic import BaseModel, ConfigDict, Field, EmailStr
+from datetime import datetime, date
+from pydantic import BaseModel, ConfigDict, Field, EmailStr, model_validator
 
 class RoleBase(BaseModel):
     name: str = Field(..., min_length=2, max_length=50)
@@ -22,6 +22,15 @@ class LabACProfileResponse(BaseModel):
     license_number: str | None = None
     experience_years: int | None = None
 
+class PatientProfileResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    phone: str
+    blood_group: str | None = None
+    dob: date
+    gender: str
+    address: str | None = None
+
 class UserBase(BaseModel):
     email: EmailStr
     username: str = Field(..., min_length=3, max_length=50)
@@ -38,6 +47,14 @@ class UserCreate(UserBase):
 
 class UserRegister(UserBase):
     password: str = Field(..., min_length=6, max_length=128)
+    password_confirm: str = Field(..., min_length=6, max_length=128)
+    blood_group: str | None = None
+
+    @model_validator(mode='after')
+    def verify_passwords(self) -> 'UserRegister':
+        if self.password != self.password_confirm:
+            raise ValueError('Passwords do not match')
+        return self
 
 class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
@@ -46,6 +63,7 @@ class UserResponse(UserBase):
     role: RoleResponse
     doctor: DoctorProfileResponse | None = None
     lab_ac: LabACProfileResponse | None = None
+    patient: PatientProfileResponse | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -54,6 +72,7 @@ class UserUpdate(BaseModel):
     username: str | None = Field(None, min_length=3, max_length=50)
     password: str | None = Field(None, min_length=6, max_length=128)
     mobile_number: str | None = Field(None, max_length=20)
+    blood_group: str | None = None
     specialization: str | None = None
     qualification: str | None = None
     license_number: str | None = None

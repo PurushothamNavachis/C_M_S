@@ -17,7 +17,7 @@ class Patient(Base):
     emergency_contact_phone: Mapped[str] = mapped_column(String(20), nullable=True)
 
     # Relationships
-    user: Mapped["User"] = relationship("User")
+    user: Mapped["User"] = relationship("User", back_populates="patient")
     appointments: Mapped[list["Appointment"]] = relationship("Appointment", back_populates="patient")
     lab_reports: Mapped[list["LabReport"]] = relationship("LabReport", back_populates="patient")
     bills: Mapped[list["Bill"]] = relationship("Bill", back_populates="patient")

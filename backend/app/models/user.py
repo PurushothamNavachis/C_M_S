@@ -21,6 +21,7 @@ class User(Base):
     role: Mapped["Role"] = relationship("Role", back_populates="users")
     doctor: Mapped["Doctor"] = relationship("Doctor", back_populates="user", uselist=False, cascade="all, delete-orphan")
     lab_ac: Mapped["LabAC"] = relationship("LabAC", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    patient: Mapped["Patient"] = relationship("Patient", back_populates="user", uselist=False, cascade="all, delete-orphan")
     refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
         "RefreshToken", 
         back_populates="user", 

@@ -1,30 +1,528 @@
-<ion-content>
-  <div class="bg-slate-50 text-slate-800 min-h-screen p-6 md:p-12 space-y-8">
-    <div class="border-b border-slate-200 pb-6 flex items-center justify-between">
+<ion-content [forceOverscroll]="false">
+  <!-- Logged Out View: Login / Signup Interface (Light Colors) -->
+  <div *ngIf="!isLoggedIn" class="bg-slate-50 min-h-screen flex items-center justify-center py-16 px-6 relative overflow-hidden">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_120%,rgba(13,148,136,0.08),transparent)] z-0"></div>
+
+    <div class="bg-white border border-slate-200/80 p-8 rounded-3xl w-full max-w-lg shadow-xl shadow-slate-200/40 relative z-10 space-y-6">
+      <div class="text-center space-y-2">
+        <h2 class="text-3xl font-extrabold text-slate-900">Customer Portal</h2>
+        <p class="text-sm text-slate-500">
+          {{ authMode === 'signup' ? 'Create an account to manage appointments and view records' : 'Sign in to access your personal health profile' }}
+        </p>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div class="flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+        <button 
+          (click)="authMode = 'signup'; errorMessage = ''"
+          [class.bg-teal-600]="authMode === 'signup'"
+          [class.text-white]="authMode === 'signup'"
+          [class.shadow-md]="authMode === 'signup'"
+          [class.text-slate-600]="authMode !== 'signup'"
+          class="flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer text-center"
+        >
+          Sign Up
+        </button>
+        <button 
+          (click)="authMode = 'login'; errorMessage = ''"
+          [class.bg-teal-600]="authMode === 'login'"
+          [class.text-white]="authMode === 'login'"
+          [class.shadow-md]="authMode === 'login'"
+          [class.text-slate-600]="authMode !== 'login'"
+          class="flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer text-center"
+        >
+          Sign In
+        </button>
+      </div>
+
+      <!-- Registration Form -->
+      <form *ngIf="authMode === 'signup'" (submit)="onSignup()" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Username</label>
+            <input 
+              type="text" 
+              [(ngModel)]="signupData.username" 
+              name="username" 
+              required
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm"
+              placeholder="e.g., john_doe"
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Email (Mail)</label>
+            <input 
+              type="email" 
+              [(ngModel)]="signupData.email" 
+              name="email" 
+              required
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm"
+              placeholder="name@example.com"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Phone Number</label>
+            <input 
+              type="tel" 
+              [(ngModel)]="signupData.mobile_number" 
+              name="mobile_number" 
+              required
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm"
+              placeholder="e.g., +1 555-0100"
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Blood Group</label>
+            <select 
+              [(ngModel)]="signupData.blood_group" 
+              name="blood_group" 
+              required
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm cursor-pointer"
+            >
+              <option value="" disabled selected>Select Blood Group</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+              <option value="Unknown">Don't Know / Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Password</label>
+            <input 
+              type="password" 
+              [(ngModel)]="signupData.password" 
+              name="password" 
+              required
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm"
+              placeholder="Min 6 characters"
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Password Confirmation</label>
+            <input 
+              type="password" 
+              [(ngModel)]="signupData.password_confirm" 
+              name="password_confirm" 
+              required
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm"
+              placeholder="Re-enter password"
+            />
+          </div>
+        </div>
+
+        <!-- Error Banner -->
+        <div *ngIf="errorMessage" class="bg-red-50 border border-red-200 text-red-650 p-3 rounded-xl text-xs font-semibold">
+          ⚠️ {{ errorMessage }}
+        </div>
+
+        <button 
+          type="submit" 
+          [disabled]="loading"
+          class="w-full py-3.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-teal-600/10 transition flex items-center justify-center space-x-2 cursor-pointer mt-4"
+        >
+          <span *ngIf="loading" class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+          <span>{{ loading ? 'Creating Account...' : 'Register Account' }}</span>
+        </button>
+      </form>
+
+      <!-- Login Form -->
+      <form *ngIf="authMode === 'login'" (submit)="onLogin()" class="space-y-4">
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Username or Email</label>
+          <input 
+            type="text" 
+            [(ngModel)]="loginData.username_or_email" 
+            name="username_or_email" 
+            required
+            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm"
+            placeholder="Username or email address"
+          />
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Password</label>
+          <input 
+            type="password" 
+            [(ngModel)]="loginData.password" 
+            name="password" 
+            required
+            class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm"
+            placeholder="Enter password"
+          />
+        </div>
+
+        <!-- Error Banner -->
+        <div *ngIf="errorMessage" class="bg-red-50 border border-red-200 text-red-650 p-3 rounded-xl text-xs font-semibold">
+          ⚠️ {{ errorMessage }}
+        </div>
+
+        <button 
+          type="submit" 
+          [disabled]="loading"
+          class="w-full py-3.5 bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-teal-600/10 transition flex items-center justify-center space-x-2 cursor-pointer mt-4"
+        >
+          <span *ngIf="loading" class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full"></span>
+          <span>{{ loading ? 'Signing in...' : 'Sign In' }}</span>
+        </button>
+      </form>
+
+      <div class="text-center text-xs text-slate-500 pt-2 border-t border-slate-200 flex items-center justify-center gap-1.5">
+        <span>Need support?</span>
+        <a routerLink="/home" class="text-teal-600 font-bold hover:underline">Return Home</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logged In View: Customer Dashboard (Light Theme Accents) -->
+  <div *ngIf="isLoggedIn" class="bg-slate-50 text-slate-800 min-h-screen p-6 md:p-12 space-y-8">
+    <div class="border-b border-slate-200 pb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
         <span class="text-xs uppercase font-extrabold tracking-wider text-green-600">Personal Health Profile</span>
-        <h1 class="text-3xl font-black text-slate-900">Patient Portal</h1>
+        <h1 class="text-3xl font-black text-slate-900">Customer Portal</h1>
       </div>
-      <button routerLink="/home" class="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:text-slate-900 rounded-xl text-sm font-bold transition">← Return Home</button>
+      <div class="flex items-center gap-3">
+        <button (click)="onLogout()" class="px-5 py-2.5 bg-red-50/60 border border-red-200 text-red-700 hover:bg-red-50 rounded-xl text-sm font-bold transition cursor-pointer">Log Out</button>
+        <button routerLink="/home" class="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:text-slate-900 rounded-xl text-sm font-bold transition cursor-pointer">← Return Home</button>
+      </div>
     </div>
-    
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div class="bg-white border border-slate-250/60 p-6 rounded-2xl space-y-3 shadow-sm">
-        <span class="text-3xl">📅</span>
-        <h2 class="text-xl font-bold text-slate-900">Book Appointments</h2>
-        <p class="text-slate-600 text-sm">Schedule outpatient consultations, choose doctor specialists, and select clinic hours.</p>
+
+    <!-- Customer Card / Profile Info Grid (Teal-tinted Clean Light Card) -->
+    <div class="bg-gradient-to-r from-teal-50 to-emerald-50/60 p-8 rounded-3xl text-slate-800 shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden border border-teal-100/80">
+      <div class="absolute right-0 bottom-0 opacity-5 pointer-events-none transform translate-y-6 translate-x-6 text-[180px] text-teal-800">🩹</div>
+      
+      <div class="space-y-4 z-10">
+        <div>
+          <span class="text-[10px] uppercase font-bold tracking-widest text-teal-700">Registered Customer</span>
+          <h2 class="text-2xl font-black tracking-tight text-slate-900">{{ currentUser?.username }}</h2>
+          <p class="text-slate-500 text-xs">{{ currentUser?.email }}</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-6 pt-2">
+          <div>
+            <span class="text-[9px] uppercase tracking-wider text-slate-400 block">Phone Number</span>
+            <span class="font-bold text-sm text-slate-800">{{ currentUser?.patient?.phone || currentUser?.mobile_number || 'N/A' }}</span>
+          </div>
+          <div>
+            <span class="text-[9px] uppercase tracking-wider text-slate-400 block">Blood Group</span>
+            <span class="font-black text-sm text-teal-700">{{ currentUser?.patient?.blood_group || 'N/A' }}</span>
+          </div>
+          <div>
+            <span class="text-[9px] uppercase tracking-wider text-slate-400 block">Status</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700 border border-green-200">Active Account</span>
+          </div>
+        </div>
       </div>
 
-      <div class="bg-white border border-slate-250/60 p-6 rounded-2xl space-y-3 shadow-sm">
-        <span class="text-3xl">📄</span>
-        <h2 class="text-xl font-bold text-slate-900">My Prescriptions</h2>
-        <p class="text-slate-600 text-sm">View active digital prescriptions, download doctor advice notes, and review dosages.</p>
+      <div class="bg-teal-600/10 border border-teal-200/80 p-4 rounded-2xl text-center self-stretch md:self-auto flex flex-col justify-center items-center gap-1 z-10 min-w-[140px]">
+        <span class="text-[9px] uppercase tracking-wider text-teal-800 block">Customer Card ID</span>
+        <span class="font-mono text-base font-black tracking-wider text-teal-900">#{{ currentUser?.patient?.id?.slice(0,8).toUpperCase() || 'N/A' }}</span>
+      </div>
+    </div>
+
+    <!-- Main Content Layout: Sidebar + Active Tab Content -->
+    <div class="flex gap-6 items-start font-sans">
+      
+      <!-- Collapsible Left Sidebar -->
+      <div [class]="sidebarOpen ? 'w-56' : 'w-14'" class="bg-white border border-slate-200 rounded-2xl p-2 shadow-sm transition-all duration-300 flex flex-col items-stretch shrink-0 sticky top-4">
+        <!-- Collapse/Expand Toggle Button -->
+        <button 
+          (click)="sidebarOpen = !sidebarOpen" 
+          class="p-2 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-bold transition flex items-center justify-center cursor-pointer mb-2" 
+          [title]="sidebarOpen ? 'Collapse Menu' : 'Expand Menu'"
+        >
+          <span>{{ sidebarOpen ? '◀ Collapse' : '▶' }}</span>
+        </button>
+
+        <div *ngIf="sidebarOpen" class="px-2 pb-2 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-2">
+          Customer Portal
+        </div>
+
+        <!-- Sidebar Navigation Buttons -->
+        <div class="space-y-1">
+          <button 
+            (click)="activeTab = 'appointments'; successMessage = ''; errorMessage = ''"
+            [class.bg-teal-600]="activeTab === 'appointments'"
+            [class.text-white]="activeTab === 'appointments'"
+            [class.text-slate-655]="activeTab !== 'appointments'"
+            [class.hover:bg-slate-50]="activeTab !== 'appointments'"
+            class="w-full p-2.5 rounded-xl transition flex items-center justify-start gap-3 cursor-pointer text-left font-bold text-xs"
+            title="Book Doctor/Lab Test"
+          >
+            <span class="text-sm shrink-0">📅</span>
+            <span *ngIf="sidebarOpen" class="truncate">Book Doctor/Lab Test</span>
+          </button>
+
+          <button 
+            (click)="activeTab = 'prescriptions'; successMessage = ''; errorMessage = ''"
+            [class.bg-teal-600]="activeTab === 'prescriptions'"
+            [class.text-white]="activeTab === 'prescriptions'"
+            [class.text-slate-655]="activeTab !== 'prescriptions'"
+            [class.hover:bg-slate-50]="activeTab !== 'prescriptions'"
+            class="w-full p-2.5 rounded-xl transition flex items-center justify-start gap-3 cursor-pointer text-left font-bold text-xs"
+            title="My Prescriptions"
+          >
+            <span class="text-sm shrink-0">📄</span>
+            <span *ngIf="sidebarOpen" class="truncate">My Prescriptions</span>
+          </button>
+
+          <button 
+            (click)="activeTab = 'billing'; successMessage = ''; errorMessage = ''"
+            [class.bg-teal-600]="activeTab === 'billing'"
+            [class.text-white]="activeTab === 'billing'"
+            [class.text-slate-655]="activeTab !== 'billing'"
+            [class.hover:bg-slate-50]="activeTab !== 'billing'"
+            class="w-full p-2.5 rounded-xl transition flex items-center justify-start gap-3 cursor-pointer text-left font-bold text-xs"
+            title="Lab Results & Bills"
+          >
+            <span class="text-sm shrink-0">🧪</span>
+            <span *ngIf="sidebarOpen" class="truncate">Lab Results & Bills</span>
+          </button>
+
+          <button 
+            (click)="activeTab = 'profile'; successMessage = ''; errorMessage = ''"
+            [class.bg-teal-600]="activeTab === 'profile'"
+            [class.text-white]="activeTab === 'profile'"
+            [class.text-slate-655]="activeTab !== 'profile'"
+            [class.hover:bg-slate-50]="activeTab !== 'profile'"
+            class="w-full p-2.5 rounded-xl transition flex items-center justify-start gap-3 cursor-pointer text-left font-bold text-xs"
+            title="Profile Settings"
+          >
+            <span class="text-sm shrink-0">👤</span>
+            <span *ngIf="sidebarOpen" class="truncate">Profile Settings</span>
+          </button>
+        </div>
       </div>
 
-      <div class="bg-white border border-slate-250/60 p-6 rounded-2xl space-y-3 shadow-sm">
-        <span class="text-3xl">🧪</span>
-        <h2 class="text-xl font-bold text-slate-900">Lab Results & Bills</h2>
-        <p class="text-slate-600 text-sm">Download diagnostic reports and view payment invoices online securely.</p>
+      <!-- Tab Content Panel -->
+      <div class="flex-1 min-w-0">
+        
+        <!-- Profile Management Form -->
+        <div *ngIf="activeTab === 'profile'" class="bg-white border border-slate-200 p-8 rounded-3xl max-w-2xl shadow-sm space-y-6">
+          <h2 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+            <span>👤</span> Update Profile Settings
+          </h2>
+          
+          <form (submit)="onUpdateProfile()" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Username</label>
+                <input 
+                  type="text" 
+                  [(ngModel)]="profileData.username" 
+                  name="username" 
+                  required
+                  class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm"
+                />
+              </div>
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Email Address</label>
+                <input 
+                  type="email" 
+                  [(ngModel)]="profileData.email" 
+                  name="email" 
+                  required
+                  class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Phone Number</label>
+                <input 
+                  type="text" 
+                  [(ngModel)]="profileData.mobile_number" 
+                  name="mobile_number" 
+                  required
+                  class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm"
+                />
+              </div>
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Blood Group</label>
+                <select 
+                  [(ngModel)]="profileData.blood_group" 
+                  name="blood_group" 
+                  required
+                  class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm cursor-pointer"
+                >
+                  <option value="A+">A+</option>
+                  <option value="A-">A-</option>
+                  <option value="B+">B+</option>
+                  <option value="B-">B-</option>
+                  <option value="AB+">AB+</option>
+                  <option value="AB-">AB-</option>
+                  <option value="O+">O+</option>
+                  <option value="O-">O-</option>
+                  <option value="Unknown">Don't Know / Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="space-y-1.5 pt-2">
+              <label class="text-xs font-bold uppercase tracking-wider text-slate-500">New Password (leave blank to keep current)</label>
+              <input 
+                type="password" 
+                [(ngModel)]="profileData.password" 
+                name="password" 
+                class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm"
+                placeholder="Enter new password"
+              />
+            </div>
+
+            <!-- Message Banners -->
+            <div *ngIf="errorMessage" class="bg-red-50 border border-red-200 text-red-650 p-3 rounded-xl text-xs font-semibold">
+              ⚠️ {{ errorMessage }}
+            </div>
+            <div *ngIf="successMessage" class="bg-green-50 border border-green-200 text-green-600 p-3 rounded-xl text-xs font-semibold animate-fade-in">
+              ✅ {{ successMessage }}
+            </div>
+
+            <button 
+              type="submit" 
+              [disabled]="loading"
+              class="px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl shadow-lg shadow-teal-600/10 transition cursor-pointer mt-2"
+            >
+              Save Changes
+            </button>
+          </form>
+        </div>
+
+        <!-- Book Doctor / Lab Test Tab -->
+        <div *ngIf="activeTab === 'appointments'" class="space-y-6">
+          <div *ngIf="bookingSubMode === 'options'" class="space-y-6">
+            <h2 class="text-xl font-bold text-slate-900 border-b border-slate-100 pb-3 flex items-center gap-2">
+              <span>📅</span> Book Doctor / Lab Test
+            </h2>
+            
+            <div class="grid md:grid-cols-2 gap-6 max-w-4xl">
+              <!-- Card 1: Book Doctor Appointment -->
+              <div class="bg-white border border-slate-200 p-6 rounded-3xl space-y-4 shadow-sm hover:shadow-md hover:border-teal-355 transition flex flex-col justify-between">
+                <div class="space-y-3">
+                  <span class="text-3xl">🩺</span>
+                  <h3 class="text-lg font-bold text-slate-900">Book Doctor Appointment</h3>
+                  <p class="text-slate-600 text-sm">Schedule outpatient consultations, choose doctor specialists, and select clinic hours.</p>
+                </div>
+                <button (click)="bookingSubMode = 'doctor'" class="mt-4 w-full py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold text-xs transition cursor-pointer">
+                  Book Consultation
+                </button>
+              </div>
+
+              <!-- Card 2: Lab Test -->
+              <div class="bg-white border border-slate-200 p-6 rounded-3xl space-y-4 shadow-sm hover:shadow-md hover:border-teal-355 transition flex flex-col justify-between">
+                <div class="space-y-3">
+                  <span class="text-3xl">🔬</span>
+                  <h3 class="text-lg font-bold text-slate-900">Lab Test</h3>
+                  <p class="text-slate-600 text-sm">Schedule diagnostic path-lab tests, clinical scans, and laboratory sample collections.</p>
+                </div>
+                <button (click)="bookingSubMode = 'lab_test'" class="mt-4 w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl font-bold text-xs transition cursor-pointer">
+                  Book Lab Test
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lab Test Booking Panel -->
+          <div *ngIf="bookingSubMode === 'lab_test'" class="space-y-6 animate-fade-in">
+            <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+              <button (click)="bookingSubMode = 'options'" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition cursor-pointer">
+                ← Back
+              </button>
+              <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <span>🔬</span> Select Diagnostic Lab Tests
+              </h2>
+            </div>
+
+            <!-- Grouped Lab Tests List -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl">
+              <div *ngFor="let cat of labTests" class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4 hover:shadow-md transition">
+                <h3 class="font-black text-slate-800 text-sm border-b border-slate-100 pb-2 text-teal-700 flex items-center gap-1.5">
+                  <span class="text-xs">📂</span> {{ cat.category }}
+                </h3>
+                
+                <div class="space-y-3">
+                  <div *ngFor="let test of cat.tests" class="flex items-start gap-3 p-2.5 hover:bg-slate-50/80 rounded-xl transition cursor-pointer" (click)="test.selected = !test.selected">
+                    <!-- Circular Checkbox (behaves as multi-select, looks like modern radio selection) -->
+                    <div class="shrink-0 flex items-center justify-center mt-0.5">
+                      <div [class.bg-teal-600]="test.selected" [class.border-teal-600]="test.selected" [class.border-slate-300]="!test.selected" class="w-5 h-5 border-2 rounded-full flex items-center justify-center transition-all">
+                        <div *ngIf="test.selected" class="w-2.5 h-2.5 bg-white rounded-full"></div>
+                      </div>
+                    </div>
+                    
+                    <div class="space-y-0.5">
+                      <div [class.text-teal-700]="test.selected" class="text-xs font-bold text-slate-800 transition">{{ test.name }}</div>
+                      <div class="text-[10px] text-slate-500 font-medium leading-relaxed">{{ test.description }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Send Request Action -->
+            <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm max-w-xl space-y-4">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Submit Booking Request</h4>
+              <p class="text-xs text-slate-600">Select all the tests you wish to perform and click the button below to submit a reservation request to the laboratory assistants.</p>
+              
+              <button 
+                (click)="onSendRequest()"
+                class="px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl shadow-lg shadow-teal-600/10 transition cursor-pointer"
+              >
+                Send Request
+              </button>
+            </div>
+          </div>
+
+          <!-- Doctor Booking Panel -->
+          <div *ngIf="bookingSubMode === 'doctor'" class="space-y-6 animate-fade-in">
+            <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+              <button (click)="bookingSubMode = 'options'" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition cursor-pointer">
+                ← Back
+              </button>
+              <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <span>🩺</span> Book Doctor Consultation
+              </h2>
+            </div>
+            
+            <div class="bg-white border border-slate-200 rounded-3xl p-8 max-w-lg shadow-sm space-y-4">
+              <p class="text-sm text-slate-600">Our doctor booking system is ready. Select outpatient consultation details below.</p>
+              <button (click)="onBookDoctor()" class="px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl shadow-lg transition cursor-pointer">
+                Submit Consultation Request
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- My Prescriptions Tab -->
+        <div *ngIf="activeTab === 'prescriptions'" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="bg-white border border-slate-200 p-6 rounded-2xl space-y-3 shadow-sm hover:shadow-md transition">
+            <span class="text-3xl">📄</span>
+            <h2 class="text-xl font-bold text-slate-900">My Prescriptions</h2>
+            <p class="text-slate-600 text-sm">View active digital prescriptions, download doctor advice notes, and review dosages.</p>
+          </div>
+        </div>
+
+        <!-- Lab Results & Bills Tab -->
+        <div *ngIf="activeTab === 'billing'" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="bg-white border border-slate-200 p-6 rounded-2xl space-y-3 shadow-sm hover:shadow-md transition">
+            <span class="text-3xl">🧪</span>
+            <h2 class="text-xl font-bold text-slate-900">Lab Results & Bills</h2>
+            <p class="text-slate-600 text-sm">Download diagnostic reports and view payment invoices online securely.</p>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>

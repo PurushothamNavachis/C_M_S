@@ -1,8 +1,9 @@
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User, RefreshToken
 from app.models.role import Role
+from app.models.patient import Patient
 from app.schemas.user import UserCreate, UserRegister
 from app.repositories.user import UserRepository, RoleRepository, RefreshTokenRepository
 from app.core.security import verify_password, get_password_hash, create_access_token, create_refresh_token
@@ -32,15 +33,29 @@ class AuthService:
                 description="Default self-registered patient access"
             )
             await self.role_repo.create(patient_role)
+        
         new_user = User(
             id=str(uuid.uuid4()),
             email=schema.email,
             username=schema.username,
             hashed_password=get_password_hash(schema.password),
             role_id=patient_role.id,
+            mobile_number=schema.mobile_number,
             is_active=True
         )
         await self.user_repo.create(new_user)
+        
+        # Create corresponding Patient profile
+        new_patient = Patient(
+            id=str(uuid.uuid4()),
+            user_id=new_user.id,
+            dob=date(1990, 1, 1), # Default DOB
+            gender="Not Specified", # Default Gender
+            blood_group=schema.blood_group,
+            phone=schema.mobile_number or "Not Provided"
+        )
+        self.db.add(new_patient)
+        
         await self.db.commit()
         return await self.user_repo.get_by_id_with_role(new_user.id)
 
