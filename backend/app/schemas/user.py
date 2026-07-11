@@ -35,6 +35,7 @@ class UserBase(BaseModel):
     email: EmailStr
     username: str = Field(..., min_length=3, max_length=50)
     mobile_number: str | None = Field(None, max_length=20)
+    specialization: str | None = None
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=6, max_length=128)

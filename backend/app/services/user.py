@@ -43,6 +43,7 @@ class UserService:
             email=schema.email,
             username=schema.username,
             mobile_number=schema.mobile_number,
+            specialization=schema.specialization,
             hashed_password=get_password_hash(schema.password),
             role_id=role.id,
             is_active=False
@@ -105,6 +106,8 @@ class UserService:
             user.email = schema.email
         if schema.mobile_number is not None:
             user.mobile_number = schema.mobile_number
+        if schema.specialization is not None:
+            user.specialization = schema.specialization
         if schema.password is not None and schema.password.strip() != "":
             from app.core.security import get_password_hash
             user.hashed_password = get_password_hash(schema.password)

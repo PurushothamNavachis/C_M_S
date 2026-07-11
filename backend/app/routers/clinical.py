@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from app.core.database import get_db
 from app.core.security import get_password_hash
+from app.dependencies.auth import get_current_user
 from app.models import (
     User, Role, Patient, Doctor, Appointment, Consultation, Vitals,
     Medicine, Prescription, PrescriptionItem, LaboratoryTest, LabReport, Bill, Payment
@@ -262,3 +263,143 @@ async def save_consultation(schema: ConsultationCreate, db: AsyncSession = Depen
     
     await db.commit()
     return {"message": "Consultation records saved successfully", "consultation_id": consult_id}
+
+
+# --- PATIENT ACTIONS ENDPOINTS ---
+
+class ConsultationRequest(BaseModel):
+    department: str | None = None
+    symptoms: list[str] = []
+    date: str
+    time: str
+    preference: str
+
+class LabRequest(BaseModel):
+    tests: list[str]
+
+@router.post("/patient-actions/consultation-request")
+async def create_patient_consultation_request(
+    schema: ConsultationRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    # 1. Find patient associated with current user
+    stmt_p = select(Patient).where(Patient.user_id == current_user.id)
+    res_p = await db.execute(stmt_p)
+    patient = res_p.scalar_one_or_none()
+    if not patient:
+        raise HTTPException(status_code=400, detail="Current user does not have a patient profile")
+        
+    # 2. Find doctor or create placeholder for specialization
+    spec = schema.department or "General Physician"
+    stmt_d = select(Doctor).where(Doctor.specialization.ilike(spec))
+    res_d = await db.execute(stmt_d)
+    doctor = res_d.scalar_one_or_none()
+    
+    if not doctor:
+        stmt_role_doc = select(Role).where(Role.name == "DOCTOR")
+        role_res_doc = await db.execute(stmt_role_doc)
+        role_doc = role_res_doc.scalar_one_or_none()
+        if not role_doc:
+            role_doc = Role(id=str(uuid.uuid4()), name="DOCTOR", description="Doctor role")
+            db.add(role_doc)
+            await db.flush()
+            
+        doc_uname = f"dr_{spec.replace(' ', '').replace('/', '').lower()}"
+        new_doc_user = User(
+            id=str(uuid.uuid4()),
+            email=f"{doc_uname}@clinic.com",
+            username=doc_uname,
+            hashed_password=get_password_hash("doctor_default_pass_123"),
+            role_id=role_doc.id,
+            is_active=True
+        )
+        db.add(new_doc_user)
+        await db.flush()
+        
+        doctor = Doctor(
+            id=str(uuid.uuid4()),
+            user_id=new_doc_user.id,
+            specialization=spec,
+            license_number=f"LIC-{str(uuid.uuid4())[:8]}",
+            consultation_fee=50.0
+        )
+        db.add(doctor)
+        await db.flush()
+        
+    # 3. Parse Date
+    try:
+        appt_date = datetime.strptime(schema.date, "%Y-%m-%d").date()
+    except ValueError:
+        appt_date = date.today()
+        
+    # 4. Create Appointment
+    new_appt = Appointment(
+        id=str(uuid.uuid4()),
+        patient_id=patient.id,
+        doctor_id=doctor.id,
+        appointment_date=appt_date,
+        time_slot=schema.time,
+        status="Requested"
+    )
+    db.add(new_appt)
+    await db.flush()
+    
+    # 5. Create Consultation record with symptoms
+    new_consult = Consultation(
+        id=str(uuid.uuid4()),
+        appointment_id=new_appt.id,
+        symptoms=", ".join(schema.symptoms),
+        diagnosis="Pending Consultation",
+        doctor_notes=f"Preference: {schema.preference}"
+    )
+    db.add(new_consult)
+    await db.commit()
+    
+    return {"message": "Consultation Request saved successfully in database", "appointment_id": new_appt.id}
+
+@router.post("/patient-actions/lab-request")
+async def create_patient_lab_request(
+    schema: LabRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    # 1. Find patient associated with current user
+    stmt_p = select(Patient).where(Patient.user_id == current_user.id)
+    res_p = await db.execute(stmt_p)
+    patient = res_p.scalar_one_or_none()
+    if not patient:
+        raise HTTPException(status_code=400, detail="Current user does not have a patient profile")
+        
+    created_reports = []
+    
+    # 2. Iterate through each test requested
+    for tname in schema.tests:
+        # Find or create LaboratoryTest
+        stmt_t = select(LaboratoryTest).where(LaboratoryTest.test_name.ilike(tname))
+        res_t = await db.execute(stmt_t)
+        lab_test = res_t.scalar_one_or_none()
+        
+        if not lab_test:
+            lab_test = LaboratoryTest(
+                id=str(uuid.uuid4()),
+                test_name=tname,
+                description=f"Requested diagnostic lab test: {tname}",
+                price=30.0
+            )
+            db.add(lab_test)
+            await db.flush()
+            
+        # Create LabReport record
+        report = LabReport(
+            id=str(uuid.uuid4()),
+            patient_id=patient.id,
+            test_id=lab_test.id,
+            result_value="Requested/Pending Sample Collection",
+            uploaded_file_url=None
+        )
+        db.add(report)
+        created_reports.append(report.id)
+        
+    await db.commit()
+    return {"message": f"Successfully created {len(created_reports)} lab request records in database.", "report_ids": created_reports}

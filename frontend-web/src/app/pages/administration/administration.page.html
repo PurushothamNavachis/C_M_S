@@ -190,6 +190,15 @@
               </div>
             </div>
 
+            <!-- Receptionist Profile Fields -->
+            <div *ngIf="registration.role_name === 'RECEPTIONIST'" class="space-y-2 border-t border-slate-100 pt-2 mt-2">
+              <div class="text-[10px] font-extrabold uppercase tracking-wider text-purple-600">Receptionist Profile</div>
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Specialization</label>
+                <input type="text" [(ngModel)]="registration.specialization" name="specialization" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="e.g. Front Desk / Billing"/>
+              </div>
+            </div>
+
             <div *ngIf="errorMessage" class="bg-red-500/10 border border-red-500/20 text-red-500 p-2 rounded-lg text-[10px] font-semibold">
               ⚠️ {{ errorMessage }}
             </div>
@@ -417,6 +426,15 @@
               </div>
             </div>
 
+            <!-- Receptionist Profile Fields -->
+            <div *ngIf="registration.role_name === 'RECEPTIONIST'" class="space-y-2 border-t border-slate-100 pt-2 mt-2">
+              <div class="text-[10px] font-extrabold uppercase tracking-wider text-blue-600">Receptionist Profile</div>
+              <div class="space-y-1">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Specialization</label>
+                <input type="text" [(ngModel)]="registration.specialization" name="specialization" class="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="e.g. Front Desk / Billing"/>
+              </div>
+            </div>
+
             <div *ngIf="errorMessage" class="bg-red-500/10 border border-red-500/20 text-red-500 p-2 rounded-lg text-[10px] font-semibold">
               ⚠️ {{ errorMessage }}
             </div>
@@ -579,17 +597,18 @@
                 [(ngModel)]="roleFilter" 
                 class="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs outline-none focus:border-green-500 text-slate-700">
                 <option value="ALL">All Roles</option>
+                <option value="RECEPTIONIST">Receptionist (RAC)</option>
                 <option value="DOCTOR">Doctor</option>
                 <option value="LAB_AC">Lab Assistant (Lab AC)</option>
               </select>
             </div>
-            <div *ngIf="roleFilter === 'DOCTOR'" class="space-y-0.5">
+            <div *ngIf="roleFilter === 'DOCTOR' || roleFilter === 'RECEPTIONIST'" class="space-y-0.5">
               <label class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Specialization</label>
               <input 
                 type="text" 
                 [(ngModel)]="specializationFilter" 
                 class="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs outline-none focus:border-green-500" 
-                placeholder="e.g. Cardiologist"/>
+                placeholder="e.g. Cardiologist / Billing"/>
             </div>
           </div>
 
@@ -601,9 +620,7 @@
                   <th class="py-2 font-semibold">Role</th>
                   <th class="py-2 font-semibold">Mobile Number</th>
                   <th class="py-2 font-semibold">Status</th>
-                  <th *ngIf="roleFilter === 'DOCTOR'" class="py-2 font-semibold">Specialization</th>
-                  <th *ngIf="roleFilter === 'LAB_AC'" class="py-2 font-semibold">Qualification</th>
-                  <th class="py-2 font-semibold text-right">Actions</th>
+                  <th class="py-2 font-semibold">Specialization / Info</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-50 text-[11px]">
@@ -629,14 +646,12 @@
                       {{ user.is_active ? 'Active' : 'Inactive' }}
                     </span>
                   </td>
-                  <td *ngIf="roleFilter === 'DOCTOR'" class="py-2">
-                    <span class="font-medium text-slate-700">{{ user.doctor?.specialization || 'General Practice' }}</span>
-                  </td>
-                  <td *ngIf="roleFilter === 'LAB_AC'" class="py-2">
-                    <span class="font-medium text-slate-700">{{ user.lab_ac?.qualification || 'Assistant' }}</span>
-                  </td>
-                  <td class="py-2 text-right">
-                    <button (click)="viewUserDetails(user)" class="text-[10px] px-2 py-0.5 bg-green-50 hover:bg-green-100 text-green-600 rounded transition font-semibold cursor-pointer">👁️ View Details</button>
+                  <td class="py-2">
+                    <span class="font-medium text-slate-700">
+                      {{ user.role?.name === 'DOCTOR' ? (user.doctor?.specialization || 'General Practice') : 
+                         (user.role?.name === 'RECEPTIONIST' ? (user.specialization || 'Front Desk') : 
+                         (user.role?.name === 'LAB_AC' ? (user.lab_ac?.qualification || 'Assistant') : 'N/A')) }}
+                    </span>
                   </td>
                 </tr>
               </tbody>

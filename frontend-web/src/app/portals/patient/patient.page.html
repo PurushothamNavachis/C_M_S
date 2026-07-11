@@ -450,7 +450,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl">
               <div *ngFor="let cat of labTests" class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4 hover:shadow-md transition">
                 <h3 class="font-black text-slate-800 text-sm border-b border-slate-100 pb-2 text-teal-700 flex items-center gap-1.5">
-                  <span class="text-xs">📂</span> {{ cat.category }}
+                  <span class="text-xs">{{ cat.icon }}</span> {{ cat.category }}
                 </h3>
                 
                 <div class="space-y-3">
@@ -486,7 +486,7 @@
           </div>
 
           <!-- Doctor Booking Panel -->
-          <div *ngIf="bookingSubMode === 'doctor'" class="space-y-6 animate-fade-in">
+          <div *ngIf="bookingSubMode === 'doctor'" class="space-y-6 animate-fade-in font-sans">
             <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
               <button (click)="bookingSubMode = 'options'" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition cursor-pointer">
                 ← Back
@@ -496,12 +496,231 @@
               </h2>
             </div>
             
-            <div class="bg-white border border-slate-200 rounded-3xl p-8 max-w-lg shadow-sm space-y-4">
-              <p class="text-sm text-slate-600">Our doctor booking system is ready. Select outpatient consultation details below.</p>
-              <button (click)="onBookDoctor()" class="px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl shadow-lg transition cursor-pointer">
-                Submit Consultation Request
-              </button>
-            </div>
+            <form (submit)="submitDoctorConsultation()" class="bg-white border border-slate-200 rounded-3xl p-8 max-w-3xl shadow-sm space-y-6">
+              
+              <!-- 1. Department Selector (Optional) -->
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-500 block">Select Department / Specialization (Optional)</label>
+                <select 
+                  [(ngModel)]="bookingForm.department" 
+                  name="department" 
+                  class="w-full max-w-md px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm cursor-pointer"
+                >
+                  <option value="">-- Select Department (Optional) --</option>
+                  <option *ngFor="let dept of departments" [value]="dept">{{ dept }}</option>
+                </select>
+              </div>
+
+              <!-- 2. Symptoms Selector / Custom Inputs -->
+              <div class="space-y-3">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-500 block">Describe Symptoms (Select multiple or enter custom)</label>
+                
+                <!-- Typing entry field with custom suggestions relative wrapper -->
+                <div class="relative w-full max-w-lg">
+                  <div class="flex gap-2">
+                    <input 
+                      type="text" 
+                      [(ngModel)]="bookingForm.customSymptomInput" 
+                      name="customSymptomInput" 
+                      (keydown.enter)="$event.preventDefault(); addCustomSymptom()"
+                      placeholder="Type a custom symptom and press Add..." 
+                      class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm"
+                    />
+                    <button 
+                      type="button" 
+                      (click)="addCustomSymptom()" 
+                      class="px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+                    >
+                      Add
+                    </button>
+                  </div>
+
+                  <!-- Suggestions Autocomplete Dropdown -->
+                  <div *ngIf="getSymptomSuggestions().length > 0" class="absolute z-10 w-full bg-white border border-slate-250 rounded-xl shadow-lg mt-1.5 max-h-48 overflow-y-auto divide-y divide-slate-100 font-sans">
+                    <button 
+                      type="button" 
+                      *ngFor="let sug of getSymptomSuggestions()" 
+                      (click)="selectSuggestion(sug)"
+                      class="w-full px-4 py-2.5 hover:bg-teal-50/50 text-slate-700 hover:text-teal-700 text-xs font-semibold text-left transition"
+                    >
+                      🔍 {{ sug }}
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Chips of Selected Symptoms -->
+                <div *ngIf="bookingForm.selectedSymptoms.length > 0" class="flex flex-wrap gap-1.5 pt-1.5">
+                  <span 
+                    *ngFor="let sym of bookingForm.selectedSymptoms" 
+                    class="inline-flex items-center gap-1.5 px-3 py-1 bg-teal-50 text-teal-700 border border-teal-200 text-xs font-bold rounded-full"
+                  >
+                    {{ sym }}
+                    <button type="button" (click)="removeSymptom(sym)" class="text-teal-500 hover:text-teal-700 text-sm font-bold cursor-pointer">×</button>
+                  </span>
+                </div>
+
+                <!-- Toggle Button for Pre-defined Symptoms List -->
+                <div class="pt-1">
+                  <button 
+                    type="button" 
+                    (click)="showAllSymptoms = !showAllSymptoms" 
+                    class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
+                  >
+                    {{ showAllSymptoms ? '❌ Close Symptoms List' : '👁️ Show All Pre-defined Symptoms' }}
+                  </button>
+                </div>
+
+                <!-- Categorized Grid of Symptoms (Collapsible) -->
+                <div *ngIf="showAllSymptoms" class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-slate-100 max-h-[300px] overflow-y-auto pr-2 animate-fade-in">
+                  <div *ngFor="let cat of symptomCategories" class="space-y-2">
+                    <span class="text-[10px] uppercase font-bold tracking-wider text-slate-400 block">{{ cat.name }}</span>
+                    <div class="flex flex-wrap gap-1.5">
+                      <button 
+                        type="button"
+                        *ngFor="let sym of cat.symptoms"
+                        (click)="toggleSymptom(sym)"
+                        [class.bg-teal-600]="bookingForm.selectedSymptoms.includes(sym)"
+                        [class.text-white]="bookingForm.selectedSymptoms.includes(sym)"
+                        [class.border-teal-600]="bookingForm.selectedSymptoms.includes(sym)"
+                        [class.bg-slate-50]="!bookingForm.selectedSymptoms.includes(sym)"
+                        [class.text-slate-700]="!bookingForm.selectedSymptoms.includes(sym)"
+                        [class.border-slate-200]="!bookingForm.selectedSymptoms.includes(sym)"
+                        class="px-2.5 py-1.5 border rounded-lg text-[10px] font-semibold transition cursor-pointer text-left"
+                      >
+                        {{ sym }}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. Flexible Date & Time Input with Constraints -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-xl">
+                
+                <!-- Date calendar input (this day to next week this day) -->
+                <div class="space-y-1.5">
+                  <label class="text-xs font-bold uppercase tracking-wider text-slate-500 block">Select Date (Within 1 Week)</label>
+                  <div class="relative">
+                    <input 
+                      #dateInput
+                      type="date" 
+                      [(ngModel)]="bookingForm.date" 
+                      name="date" 
+                      [min]="minDate" 
+                      [max]="maxDate"
+                      (click)="dateInput.showPicker()"
+                      required 
+                      class="w-full pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm cursor-pointer"
+                    />
+                    <span 
+                      (click)="dateInput.showPicker()"
+                      class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 cursor-pointer pointer-events-auto"
+                    >
+                      📅
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Digital Time dropdown selects (Hours 10 AM - 6 PM & Minutes in steps of 5) -->
+                <div class="space-y-1.5">
+                  <label class="text-xs font-bold uppercase tracking-wider text-slate-500 block">Select Preferred Time (10 AM - 6 PM)</label>
+                  <div class="flex gap-2">
+                    
+                    <!-- Hour Select -->
+                    <select 
+                      [(ngModel)]="bookingForm.timeHour" 
+                      name="timeHour" 
+                      class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 text-slate-900 outline-none transition text-sm cursor-pointer"
+                    >
+                      <option *ngFor="let hr of hoursList" [value]="hr">{{ hr }}</option>
+                    </select>
+
+                    <!-- Minute Select -->
+                    <select 
+                      [(ngModel)]="bookingForm.timeMinute" 
+                      name="timeMinute" 
+                      class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 text-slate-900 outline-none transition text-sm cursor-pointer"
+                    >
+                      <option *ngFor="let min of minutesList" [value]="min">{{ min }}</option>
+                    </select>
+
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- 4. Schedule Preference Radio Buttons -->
+              <div class="space-y-2 border-t border-slate-100 pt-4">
+                <label class="text-xs font-bold uppercase tracking-wider text-slate-500 block">Scheduling Availability Policy</label>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+                  
+                  <label 
+                    [class.border-teal-500]="bookingForm.schedulingPreference === 'cancel'"
+                    [class.bg-teal-50/50]="bookingForm.schedulingPreference === 'cancel'"
+                    class="flex items-start gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200 cursor-pointer hover:border-teal-350 transition"
+                  >
+                    <input 
+                      type="radio" 
+                      [(ngModel)]="bookingForm.schedulingPreference" 
+                      name="schedulingPreference" 
+                      value="cancel" 
+                      class="hidden"
+                    />
+                    <!-- Custom radio indicator -->
+                    <div class="mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
+                      [class.border-teal-500]="bookingForm.schedulingPreference === 'cancel'"
+                      [class.border-slate-300]="bookingForm.schedulingPreference !== 'cancel'"
+                    >
+                      <div *ngIf="bookingForm.schedulingPreference === 'cancel'" class="w-2 h-2 rounded-full bg-teal-600"></div>
+                    </div>
+                    
+                    <div class="space-y-0.5">
+                      <span class="text-xs font-bold text-slate-800 block">Cancel appointment if requested time schedule is not available.</span>
+                      <span class="text-[10px] text-slate-500 font-medium font-sans">We will immediately void the booking request if the exact time slot is fully booked.</span>
+                    </div>
+                  </label>
+
+                  <label 
+                    [class.border-teal-500]="bookingForm.schedulingPreference === 'anyway'"
+                    [class.bg-teal-50/50]="bookingForm.schedulingPreference === 'anyway'"
+                    class="flex items-start gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200 cursor-pointer hover:border-teal-350 transition"
+                  >
+                    <input 
+                      type="radio" 
+                      [(ngModel)]="bookingForm.schedulingPreference" 
+                      name="schedulingPreference" 
+                      value="anyway" 
+                      class="hidden"
+                    />
+                    <!-- Custom radio indicator -->
+                    <div class="mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0"
+                      [class.border-teal-500]="bookingForm.schedulingPreference === 'anyway'"
+                      [class.border-slate-300]="bookingForm.schedulingPreference !== 'anyway'"
+                    >
+                      <div *ngIf="bookingForm.schedulingPreference === 'anyway'" class="w-2 h-2 rounded-full bg-teal-600"></div>
+                    </div>
+                    
+                    <div class="space-y-0.5">
+                      <span class="text-xs font-bold text-slate-800 block">Book appointment anyway.</span>
+                      <span class="text-[10px] text-slate-500 font-medium font-sans">We will secure the closest available alternative timing for you if the exact slot is booked.</span>
+                    </div>
+                  </label>
+
+                </div>
+              </div>
+
+              <!-- Submit button -->
+              <div class="pt-4 border-t border-slate-100">
+                <button 
+                  type="submit" 
+                  class="px-8 py-3.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-bold text-xs transition cursor-pointer shadow-lg shadow-teal-600/10"
+                >
+                  Submit Consultation Request
+                </button>
+              </div>
+
+            </form>
           </div>
         </div>
 
