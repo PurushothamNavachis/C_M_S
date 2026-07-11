@@ -103,6 +103,9 @@ export class AdministrationPage implements OnInit, OnDestroy {
 
   appointmentsList: any[] = [];
   newAppointment = { id: '', patientName: '', doctorName: '', time: '', status: 'Scheduled' };
+  requestsMode: 'appointments' | 'labTests' = 'appointments';
+  labRequestsList: any[] = [];
+  selectedDoctorForAppt: { [apptId: string]: string } = {};
 
   // Mock Consultations / Prescriptions Data for Doctor
   prescriptionsList: any[] = [];
@@ -163,6 +166,7 @@ export class AdministrationPage implements OnInit, OnDestroy {
     this.loadUsers();
     this.loadPatients();
     this.loadAppointments();
+    this.loadLabRequests();
     this.startClock();
   }
 
@@ -225,6 +229,47 @@ export class AdministrationPage implements OnInit, OnDestroy {
       },
       error: (err: any) => {
         console.error('Failed to load appointments', err);
+      }
+    });
+  }
+
+  loadLabRequests() {
+    this.api.get('clinical/lab-requests').subscribe({
+      next: (data: any) => {
+        this.labRequestsList = data;
+      },
+      error: (err: any) => {
+        console.error('Failed to load lab requests', err);
+      }
+    });
+  }
+
+  assignDoctor(appointmentId: string, doctorId: string) {
+    if (!doctorId) {
+      alert('Please select a doctor to assign.');
+      return;
+    }
+    this.api.patch(`clinical/appointments/${appointmentId}/assign-doctor?doctor_id=${doctorId}`, {}).subscribe({
+      next: () => {
+        alert('Doctor assigned successfully!');
+        this.loadAppointments();
+      },
+      error: (err: any) => {
+        console.error(err);
+        alert('Failed to assign doctor: ' + (err.error?.detail || err.message));
+      }
+    });
+  }
+
+  updateLabRequestStatus(reportId: string, status: string) {
+    this.api.patch(`clinical/lab-requests/${reportId}/status?status=${status}`, {}).subscribe({
+      next: () => {
+        alert(`Lab request status updated to ${status}!`);
+        this.loadLabRequests();
+      },
+      error: (err: any) => {
+        console.error(err);
+        alert('Failed to update status: ' + (err.error?.detail || err.message));
       }
     });
   }

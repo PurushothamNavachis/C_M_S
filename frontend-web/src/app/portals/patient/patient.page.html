@@ -476,12 +476,18 @@
               <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Submit Booking Request</h4>
               <p class="text-xs text-slate-600">Select all the tests you wish to perform and click the button below to submit a reservation request to the laboratory assistants.</p>
               
-              <button 
-                (click)="onSendRequest()"
-                class="px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl shadow-lg shadow-teal-600/10 transition cursor-pointer"
-              >
-                Send Request
-              </button>
+              <div class="flex items-center gap-4">
+                <button 
+                  (click)="onSendRequest()"
+                  class="px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl shadow-lg shadow-teal-600/10 transition cursor-pointer"
+                >
+                  Send Request
+                </button>
+                
+                <div class="w-8 h-8 rounded-full bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center font-extrabold text-sm shadow-sm transition">
+                  {{ getSelectedTestsCount() }}
+                </div>
+              </div>
             </div>
           </div>
 

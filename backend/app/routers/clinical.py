@@ -200,7 +200,8 @@ async def create_appointment(schema: AppointmentCreate, db: AsyncSession = Depen
 async def list_appointments(db: AsyncSession = Depends(get_db)):
     stmt = select(Appointment).options(
         selectinload(Appointment.patient).selectinload(Patient.user),
-        selectinload(Appointment.doctor).selectinload(Doctor.user)
+        selectinload(Appointment.doctor).selectinload(Doctor.user),
+        selectinload(Appointment.consultation)
     )
     res = await db.execute(stmt)
     appts = res.scalars().all()
@@ -209,8 +210,12 @@ async def list_appointments(db: AsyncSession = Depends(get_db)):
             "id": a.id,
             "patientName": a.patient.user.username,
             "doctorName": a.doctor.user.username,
+            "doctorSpecialization": a.doctor.specialization,
+            "date": str(a.appointment_date),
             "time": a.time_slot,
-            "status": a.status
+            "status": a.status,
+            "symptoms": a.consultation.symptoms if a.consultation else "",
+            "preference": a.consultation.doctor_notes if a.consultation else ""
         }
         for a in appts
     ]
@@ -403,3 +408,35 @@ async def create_patient_lab_request(
         
     await db.commit()
     return {"message": f"Successfully created {len(created_reports)} lab request records in database.", "report_ids": created_reports}
+
+@router.get("/lab-requests")
+async def list_lab_requests(db: AsyncSession = Depends(get_db)):
+    stmt = select(LabReport).options(
+        selectinload(LabReport.patient).selectinload(Patient.user),
+        selectinload(LabReport.test)
+    )
+    res = await db.execute(stmt)
+    reports = res.scalars().all()
+    return [
+        {
+            "id": r.id,
+            "patientName": r.patient.user.username,
+            "testName": r.test.test_name,
+            "status": r.result_value
+        }
+        for r in reports
+    ]
+
+@router.patch("/appointments/{appointment_id}/assign-doctor")
+async def assign_doctor(appointment_id: str, doctor_id: str, db: AsyncSession = Depends(get_db)):
+    stmt = update(Appointment).where(Appointment.id == appointment_id).values(doctor_id=doctor_id, status="Scheduled")
+    await db.execute(stmt)
+    await db.commit()
+    return {"message": "Doctor assigned and appointment scheduled"}
+
+@router.patch("/lab-requests/{report_id}/status")
+async def update_lab_request_status(report_id: str, status: str, db: AsyncSession = Depends(get_db)):
+    stmt = update(LabReport).where(LabReport.id == report_id).values(result_value=status)
+    await db.execute(stmt)
+    await db.commit()
+    return {"message": "Lab report status updated successfully"}

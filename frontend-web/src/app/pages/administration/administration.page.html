@@ -659,79 +659,186 @@
           </div>
         </div>
 
-        <!-- Active Check-In Queue Board -->
-        <div class="bg-white border border-slate-200 p-3.5 rounded-xl shadow-sm space-y-3">
-          <div class="flex items-center justify-between">
+
+
+        <!-- Incoming Patient Requests Dashboard -->
+        <div class="bg-white border border-slate-200 p-4 rounded-xl shadow-sm space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h2 class="text-sm font-bold text-slate-900">Active Queue</h2>
-              <p class="text-[10px] text-slate-400">Patients checked in and waiting for clinical consultation</p>
+              <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <span>🔔</span> Incoming Consultation & Lab Requests
+              </h2>
+              <p class="text-[10px] text-slate-400">Manage incoming patient requests and schedule confirmations</p>
             </div>
-            <span class="px-2 py-0.5 bg-green-500/10 text-green-700 rounded text-[9px] font-extrabold uppercase border border-green-200/50">
-              {{ appointmentsList.length }} Registered Slot(s)
-            </span>
+            
+            <!-- Toggler Buttons with counts -->
+            <div class="flex gap-2">
+              <button 
+                (click)="requestsMode = 'appointments'"
+                [class.bg-teal-600]="requestsMode === 'appointments'"
+                [class.text-white]="requestsMode === 'appointments'"
+                [class.bg-slate-50]="requestsMode !== 'appointments'"
+                [class.text-slate-600]="requestsMode !== 'appointments'"
+                [class.border-slate-200]="requestsMode !== 'appointments'"
+                class="px-3 py-1.5 border rounded-lg text-[10px] font-bold transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Appointments</span>
+                <span 
+                  [class.bg-teal-700]="requestsMode === 'appointments'"
+                  [class.text-white]="requestsMode === 'appointments'"
+                  [class.bg-slate-200]="requestsMode !== 'appointments'"
+                  [class.text-slate-600]="requestsMode !== 'appointments'"
+                  class="px-1.5 py-0.5 rounded-full text-[8px] font-bold"
+                >
+                  {{ appointmentsList.length }}
+                </span>
+              </button>
+
+              <button 
+                (click)="requestsMode = 'labTests'"
+                [class.bg-teal-600]="requestsMode === 'labTests'"
+                [class.text-white]="requestsMode === 'labTests'"
+                [class.bg-slate-50]="requestsMode !== 'labTests'"
+                [class.text-slate-600]="requestsMode !== 'labTests'"
+                [class.border-slate-200]="requestsMode !== 'labTests'"
+                class="px-3 py-1.5 border rounded-lg text-[10px] font-bold transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>Lab Tests</span>
+                <span 
+                  [class.bg-teal-700]="requestsMode === 'labTests'"
+                  [class.text-white]="requestsMode === 'labTests'"
+                  [class.bg-slate-200]="requestsMode !== 'labTests'"
+                  [class.text-slate-600]="requestsMode !== 'labTests'"
+                  class="px-1.5 py-0.5 rounded-full text-[8px] font-bold"
+                >
+                  {{ labRequestsList.length }}
+                </span>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Appointments Request Table -->
+          <div *ngIf="requestsMode === 'appointments'" class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-100 text-slate-400 font-bold uppercase text-[9px] tracking-wider">
+                  <th class="pb-2">Patient</th>
+                  <th class="pb-2">Department</th>
+                  <th class="pb-2">Preferred Date & Time</th>
+                  <th class="pb-2">Symptoms</th>
+                  <th class="pb-2">Assign / Cancel</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr *ngFor="let apt of appointmentsList" class="hover:bg-slate-50/50 transition">
+                  <td class="py-2.5 font-bold text-slate-800">{{ apt.patientName }}</td>
+                  <td class="py-2.5">
+                    <span class="px-2 py-0.5 bg-teal-50 text-teal-700 font-semibold rounded-md border border-teal-100">
+                      {{ apt.doctorSpecialization || 'General Physician' }}
+                    </span>
+                  </td>
+                  <td class="py-2.5 text-slate-600 font-medium">
+                    {{ apt.date }} | {{ apt.time }}
+                  </td>
+                  <td class="py-2.5">
+                    <div class="flex flex-wrap gap-1 max-w-xs">
+                      <span *ngFor="let sym of (apt.symptoms ? apt.symptoms.split(', ') : [])" class="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-[9px] font-medium rounded-md">
+                        {{ sym }}
+                      </span>
+                      <span *ngIf="!apt.symptoms" class="text-slate-400 italic text-[10px]">None</span>
+                    </div>
+                  </td>
+                  <td class="py-2.5">
+                    <div *ngIf="apt.status === 'Requested'" class="flex items-center gap-2">
+                      <select [(ngModel)]="selectedDoctorForAppt[apt.id]" class="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs outline-none cursor-pointer">
+                        <option value="" disabled selected>Select Doctor</option>
+                        <option *ngFor="let doc of activeDoctors" [value]="doc.doctor?.id">
+                          Dr. {{ doc.username }} ({{ doc.doctor?.specialization || 'GP' }})
+                        </option>
+                      </select>
+                      
+                      <button 
+                        (click)="assignDoctor(apt.id, selectedDoctorForAppt[apt.id])" 
+                        class="px-2.5 py-1 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-[10px] transition cursor-pointer shadow-sm"
+                      >
+                        Book Doctor
+                      </button>
+                      
+                      <button 
+                        (click)="updateAppointmentStatus(apt.id, 'Cancelled')" 
+                        class="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg text-[10px] transition cursor-pointer shadow-sm"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <div *ngIf="apt.status !== 'Requested'" class="flex items-center gap-2">
+                      <span class="text-slate-500 font-semibold">Assigned: Dr. {{ apt.doctorName }}</span>
+                      <span class="px-1.5 py-0.5 bg-green-50 text-green-700 text-[9px] font-bold rounded border border-green-200/50">
+                        {{ apt.status }}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="appointmentsList.length === 0">
+                  <td colspan="5" class="text-center py-6 text-slate-400 italic">
+                    No requests or scheduled appointments found.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <div class="border-t border-slate-100 pt-3">
-            <div *ngIf="appointmentsList.length === 0" class="text-xs text-slate-400 italic text-center py-4 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-              No appointments scheduled for today yet.
-            </div>
-            <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-              <div *ngFor="let apt of appointmentsList" class="p-3 bg-slate-50 border border-slate-200 rounded-xl flex flex-col justify-between gap-3 hover:border-slate-300 transition">
-                <div class="space-y-1">
-                  <div class="font-bold text-slate-800 text-[11px]">{{ apt.patientName }}</div>
-                  <div class="text-[10px] text-slate-400 leading-normal">Meeting with <b>{{ apt.doctorName }}</b> at <span class="font-semibold text-slate-600">{{ apt.time }}</span></div>
-                </div>
-                <div class="flex items-center justify-between border-t border-slate-100 pt-2">
-                  <span [class]="apt.status === 'Checked In' ? 'px-1.5 py-0.5 bg-green-100 text-green-800 text-[8px] font-bold rounded' : 'px-1.5 py-0.5 bg-amber-100 text-amber-800 text-[8px] font-bold rounded'">
-                    {{ apt.status }}
-                  </span>
-                  <button *ngIf="apt.status !== 'Checked In'" (click)="updateAppointmentStatus(apt.id, 'Checked In')" class="text-[9px] bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded-lg hover:bg-slate-100 transition shadow-sm font-semibold">Check In</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Appointment Scheduling & Patient Records Grid -->
-        <div class="grid lg:grid-cols-2 gap-3">
-          <!-- Schedule Appointment Form -->
-          <div class="bg-white border border-slate-200 p-3.5 rounded-xl shadow-sm space-y-3">
-            <div>
-              <h2 class="text-sm font-bold text-slate-900">Schedule Consultation</h2>
-              <p class="text-[10px] text-slate-400">Book doctor schedule slots</p>
-            </div>
-            <div class="space-y-2">
-              <div class="space-y-0.5">
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Patient Name</label>
-                <input type="text" [(ngModel)]="newAppointment.patientName" class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="Select or type patient"/>
-              </div>
-              <div class="space-y-0.5">
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Assign Doctor</label>
-                <input type="text" [(ngModel)]="newAppointment.doctorName" class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="e.g. Dr. House"/>
-              </div>
-              <div class="space-y-0.5">
-                <label class="text-[10px] font-bold text-slate-400 uppercase">Scheduled Time</label>
-                <input type="text" [(ngModel)]="newAppointment.time" class="w-full px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs" placeholder="e.g. 10:00 AM"/>
-              </div>
-            </div>
-            <button (click)="scheduleAppointment()" class="w-full py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-xs transition">Book Slot</button>
-          </div>
-
-          <!-- Registered Patient List -->
-          <div class="bg-white border border-slate-200 p-3.5 rounded-xl shadow-sm space-y-3">
-            <h2 class="text-sm font-bold text-slate-900">Patient Records</h2>
-            <div *ngIf="patientsList.length === 0" class="text-xs text-slate-400 italic text-center py-6">
-              No patients registered yet.
-            </div>
-            <ul class="divide-y divide-slate-100 text-xs max-h-48 overflow-y-auto pr-1">
-              <li *ngFor="let p of patientsList" class="py-2 flex justify-between items-center">
-                <div>
-                  <div class="font-semibold text-slate-800 text-[11px]">{{ p.name }} ({{ p.age }}y/o, {{ p.gender }})</div>
-                  <div class="text-[10px] text-slate-400">{{ p.phone }} | {{ p.email }}</div>
-                </div>
-                <span class="text-[9px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">Onboarded</span>
-              </li>
-            </ul>
+          <!-- Lab Tests Request Table -->
+          <div *ngIf="requestsMode === 'labTests'" class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-100 text-slate-400 font-bold uppercase text-[9px] tracking-wider">
+                  <th class="pb-2">Patient</th>
+                  <th class="pb-2">Lab Test</th>
+                  <th class="pb-2">Status</th>
+                  <th class="pb-2 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr *ngFor="let req of labRequestsList" class="hover:bg-slate-50/50 transition">
+                  <td class="py-2.5 font-bold text-slate-800">{{ req.patientName }}</td>
+                  <td class="py-2.5">
+                    <span class="px-2 py-0.5 bg-teal-50 text-teal-700 font-semibold rounded-md border border-teal-100">
+                      {{ req.testName }}
+                    </span>
+                  </td>
+                  <td class="py-2.5 text-slate-600 font-medium">
+                    {{ req.status }}
+                  </td>
+                  <td class="py-2.5 text-right">
+                    <div *ngIf="req.status === 'Requested/Pending Sample Collection'" class="flex justify-end gap-2">
+                      <button 
+                        (click)="updateLabRequestStatus(req.id, 'Booked')" 
+                        class="px-2.5 py-1 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-[10px] transition cursor-pointer shadow-sm"
+                      >
+                        Book Test
+                      </button>
+                      <button 
+                        (click)="updateLabRequestStatus(req.id, 'Cancelled')" 
+                        class="px-2.5 py-1 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg text-[10px] transition cursor-pointer shadow-sm"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <div *ngIf="req.status !== 'Requested/Pending Sample Collection'">
+                      <span class="px-1.5 py-0.5 bg-green-50 text-green-700 text-[9px] font-bold rounded border border-green-200/50">
+                        {{ req.status }}
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="labRequestsList.length === 0">
+                  <td colspan="4" class="text-center py-6 text-slate-400 italic">
+                    No laboratory test requests found.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
