@@ -202,15 +202,25 @@ async def list_appointments(db: AsyncSession = Depends(get_db)):
         selectinload(Appointment.patient).selectinload(Patient.user),
         selectinload(Appointment.doctor).selectinload(Doctor.user),
         selectinload(Appointment.consultation)
-    )
+    ).order_by(Appointment.appointment_date.desc(), Appointment.time_slot.desc())
     res = await db.execute(stmt)
-    appts = res.scalars().all()
+    appts = list(res.scalars().all())
+    status_order = {
+        "Doctor Completed": 1,
+        "Requested": 2,
+        "Checked In": 2,
+        "Scheduled": 3,
+        "Finalized": 4,
+        "Completed": 4,
+        "Cancelled": 5
+    }
+    appts.sort(key=lambda a: (status_order.get(a.status, 99), str(a.appointment_date), a.time_slot))
     return [
         {
             "id": a.id,
             "patientName": a.patient.user.username,
-            "doctorName": a.doctor.user.username,
-            "doctorSpecialization": a.doctor.specialization,
+            "doctorName": a.doctor.user.username if a.doctor else "Unassigned",
+            "doctorSpecialization": a.doctor.specialization if a.doctor else "N/A",
             "date": str(a.appointment_date),
             "time": a.time_slot,
             "status": a.status,
@@ -229,16 +239,27 @@ async def update_appointment_status(appointment_id: str, status: str, db: AsyncS
 
 @router.post("/consultations")
 async def save_consultation(schema: ConsultationCreate, db: AsyncSession = Depends(get_db)):
-    # 1. Create Consultation
-    consult_id = str(uuid.uuid4())
-    new_consult = Consultation(
-        id=consult_id,
-        appointment_id=schema.appointment_id,
-        symptoms=schema.symptoms,
-        diagnosis=schema.diagnosis,
-        doctor_notes=schema.doctor_notes
-    )
-    db.add(new_consult)
+    # 1. Upsert Consultation
+    stmt = select(Consultation).where(Consultation.appointment_id == schema.appointment_id)
+    res = await db.execute(stmt)
+    existing_consult = res.scalar_one_or_none()
+    
+    if existing_consult:
+        existing_consult.symptoms = schema.symptoms
+        existing_consult.diagnosis = schema.diagnosis
+        existing_consult.doctor_notes = schema.doctor_notes
+        consult_id = existing_consult.id
+    else:
+        consult_id = str(uuid.uuid4())
+        new_consult = Consultation(
+            id=consult_id,
+            appointment_id=schema.appointment_id,
+            symptoms=schema.symptoms,
+            diagnosis=schema.diagnosis,
+            doctor_notes=schema.doctor_notes
+        )
+        db.add(new_consult)
+        
     await db.flush()
 
     # 2. Save Vitals if provided
@@ -263,11 +284,11 @@ async def save_consultation(schema: ConsultationCreate, db: AsyncSession = Depen
         db.add(new_prescription)
 
     # 4. Mark appointment completed
-    stmt = update(Appointment).where(Appointment.id == schema.appointment_id).values(status="Completed")
+    stmt = update(Appointment).where(Appointment.id == schema.appointment_id).values(status="Doctor Completed")
     await db.execute(stmt)
     
     await db.commit()
-    return {"message": "Consultation records saved successfully", "consultation_id": consult_id}
+    return {"message": "Consultation records saved successfully and submitted to receptionist", "consultation_id": consult_id}
 
 
 # --- PATIENT ACTIONS ENDPOINTS ---
@@ -440,3 +461,210 @@ async def update_lab_request_status(report_id: str, status: str, db: AsyncSessio
     await db.execute(stmt)
     await db.commit()
     return {"message": "Lab report status updated successfully"}
+
+class LabReportUpdate(BaseModel):
+    status: str | None = None
+    uploaded_file_url: str | None = None
+
+@router.patch("/lab-reports/{report_id}")
+async def update_lab_report(report_id: str, schema: LabReportUpdate, db: AsyncSession = Depends(get_db)):
+    values = {}
+    if schema.status is not None:
+        values["result_value"] = schema.status
+    if schema.uploaded_file_url is not None:
+        values["uploaded_file_url"] = schema.uploaded_file_url
+        
+    if values:
+        stmt = update(LabReport).where(LabReport.id == report_id).values(**values)
+        await db.execute(stmt)
+        await db.commit()
+    return {"message": "Lab report updated successfully"}
+
+@router.get("/patients/{patient_id}/consultations")
+async def get_patient_consultations(patient_id: str, db: AsyncSession = Depends(get_db)):
+    stmt = select(Consultation).join(Appointment).where(Appointment.patient_id == patient_id).options(
+        selectinload(Consultation.appointment).selectinload(Appointment.doctor).selectinload(Doctor.user)
+    )
+    res = await db.execute(stmt)
+    consultations = list(res.scalars().all())
+    status_order = {
+        "Doctor Completed": 1,
+        "Requested": 2,
+        "Checked In": 2,
+        "Scheduled": 3,
+        "Finalized": 4,
+        "Completed": 4,
+        "Cancelled": 5
+    }
+    consultations.sort(key=lambda c: (status_order.get(c.appointment.status, 99), str(c.appointment.appointment_date), c.appointment.time_slot))
+    return [
+        {
+            "id": c.id,
+            "date": str(c.appointment.appointment_date),
+            "timeSlot": c.appointment.time_slot,
+            "doctorName": c.appointment.doctor.user.username if (c.appointment.doctor and c.appointment.doctor.user) else "N/A",
+            "symptoms": c.symptoms,
+            "diagnosis": c.diagnosis,
+            "doctorNotes": c.doctor_notes,
+            "status": c.appointment.status,
+            "uploadedFileUrl": c.uploaded_file_url
+        }
+        for c in consultations
+    ]
+
+@router.get("/patients/{patient_id}/lab-requests")
+async def get_patient_lab_requests(patient_id: str, db: AsyncSession = Depends(get_db)):
+    stmt = select(LabReport).where(LabReport.patient_id == patient_id).options(
+        selectinload(LabReport.test)
+    )
+    res = await db.execute(stmt)
+    reports = res.scalars().all()
+    if not reports:
+        return []
+    
+    # Group lab reports by booking date
+    grouped: dict[str, list] = {}
+    for r in reports:
+        d_str = str(r.created_at.date()) if r.created_at else "N/A"
+        if d_str not in grouped:
+            grouped[d_str] = []
+        grouped[d_str].append(r)
+    
+    result_list = []
+    for d_str, group in grouped.items():
+        test_names = [r.test.test_name for r in group if r.test]
+        combined_names = ", ".join(test_names)
+        first_r = group[0]
+        result_list.append({
+            "id": first_r.id,
+            "testName": combined_names,
+            "resultValue": first_r.result_value or "Booked",
+            "status": first_r.status,
+            "date": d_str,
+            "uploadedFileUrl": first_r.uploaded_file_url
+        })
+    
+    status_order = {
+        "COMPLETED": 1,
+        "PENDING": 2,
+        "APPROVED": 3,
+        "FINALIZED": 4,
+        "CANCELLED": 5
+    }
+    result_list.sort(key=lambda r: status_order.get(r["status"], 99))
+    
+    return result_list
+
+@router.post("/appointments/{appointment_id}/approve")
+async def approve_appointment(appointment_id: str, db: AsyncSession = Depends(get_db)):
+    stmt = update(Appointment).where(Appointment.id == appointment_id).values(status="Scheduled")
+    await db.execute(stmt)
+    await db.commit()
+    return {"message": "Appointment approved successfully"}
+
+@router.post("/appointments/{appointment_id}/cancel")
+async def cancel_appointment(appointment_id: str, db: AsyncSession = Depends(get_db)):
+    stmt = update(Appointment).where(Appointment.id == appointment_id).values(status="Cancelled")
+    await db.execute(stmt)
+    await db.commit()
+    return {"message": "Appointment cancelled successfully"}
+
+@router.post("/lab-requests/group/{patient_id}/{date}/approve")
+async def approve_lab_request_group(patient_id: str, date: str, db: AsyncSession = Depends(get_db)):
+    stmt = select(LabReport).where(LabReport.patient_id == patient_id)
+    res = await db.execute(stmt)
+    reports = res.scalars().all()
+    for r in reports:
+        if r.created_at and str(r.created_at.date()) == date:
+            r.status = "APPROVED"
+    await db.commit()
+    return {"message": "Lab requests approved successfully"}
+
+@router.post("/lab-requests/group/{patient_id}/{date}/cancel")
+async def cancel_lab_request_group(patient_id: str, date: str, db: AsyncSession = Depends(get_db)):
+    stmt = select(LabReport).where(LabReport.patient_id == patient_id)
+    res = await db.execute(stmt)
+    reports = res.scalars().all()
+    for r in reports:
+        if r.created_at and str(r.created_at.date()) == date:
+            r.status = "CANCELLED"
+            r.result_value = "Cancelled"
+    await db.commit()
+    return {"message": "Lab requests cancelled successfully"}
+
+class ConsultSubmit(BaseModel):
+    symptoms: str | None = None
+    diagnosis: str | None = None
+    doctor_notes: str | None = None
+
+@router.post("/consultations/{consultation_id}/submit")
+async def submit_consultation(consultation_id: str, schema: ConsultSubmit, db: AsyncSession = Depends(get_db)):
+    stmt_c = select(Consultation).where(Consultation.id == consultation_id).options(selectinload(Consultation.appointment))
+    res_c = await db.execute(stmt_c)
+    consultation = res_c.scalar_one_or_none()
+    if not consultation:
+        raise HTTPException(status_code=404, detail="Consultation not found")
+    
+    consultation.symptoms = schema.symptoms
+    consultation.diagnosis = schema.diagnosis
+    consultation.doctor_notes = schema.doctor_notes
+    consultation.appointment.status = "Doctor Completed"
+    
+    await db.commit()
+    return {"message": "Consultation details submitted to receptionist"}
+
+@router.post("/consultations/{consultation_id}/finalize")
+async def finalize_consultation(consultation_id: str, db: AsyncSession = Depends(get_db)):
+    stmt_c = select(Consultation).where(Consultation.id == consultation_id).options(selectinload(Consultation.appointment))
+    res_c = await db.execute(stmt_c)
+    consultation = res_c.scalar_one_or_none()
+    if not consultation:
+        raise HTTPException(status_code=404, detail="Consultation not found")
+    
+    consultation.appointment.status = "Finalized"
+    await db.commit()
+    
+    # Import and run PyMuPDF generator on-demand
+    from generate_reports import generate_single_consultation_pdf
+    pdf_url = generate_single_consultation_pdf(consultation_id)
+    
+    return {"message": "Consultation finalized and report PDF generated", "uploadedFileUrl": pdf_url}
+
+class LabSubmit(BaseModel):
+    result_value: str
+
+@router.post("/lab-requests/group/{patient_id}/{date}/submit")
+async def submit_lab_report_group(patient_id: str, date: str, schema: LabSubmit, db: AsyncSession = Depends(get_db)):
+    stmt = select(LabReport).where(LabReport.patient_id == patient_id)
+    res = await db.execute(stmt)
+    reports = res.scalars().all()
+    
+    for r in reports:
+        if r.created_at and str(r.created_at.date()) == date:
+            r.status = "COMPLETED"
+            r.result_value = schema.result_value
+            
+    await db.commit()
+    return {"message": "Lab reports submitted to receptionist"}
+
+class LabFinalize(BaseModel):
+    result_value: str
+
+@router.post("/lab-requests/group/{patient_id}/{date}/finalize")
+async def finalize_lab_report_group(patient_id: str, date: str, schema: LabFinalize, db: AsyncSession = Depends(get_db)):
+    stmt = select(LabReport).where(LabReport.patient_id == patient_id)
+    res = await db.execute(stmt)
+    reports = res.scalars().all()
+    
+    for r in reports:
+        if r.created_at and str(r.created_at.date()) == date:
+            r.status = "FINALIZED"
+            r.result_value = schema.result_value
+            
+    await db.commit()
+    
+    # Import and run PyMuPDF generator on-demand
+    from generate_reports import generate_single_lab_report_pdf
+    pdf_url = generate_single_lab_report_pdf(patient_id)
+    
+    return {"message": "Lab reports finalized and PDF generated", "uploadedFileUrl": pdf_url}

@@ -63,7 +63,7 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="space-y-1.5">
             <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Phone Number</label>
             <input 
@@ -94,6 +94,21 @@
               <option value="O+">O+</option>
               <option value="O-">O-</option>
               <option value="Unknown">Don't Know / Other</option>
+            </select>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Gender</label>
+            <select 
+              [(ngModel)]="signupData.gender" 
+              name="gender" 
+              required
+              class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-teal-500 focus:ring-1 focus:ring-teal-500 text-slate-900 outline-none transition text-sm cursor-pointer"
+            >
+              <option value="" disabled selected>Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
             </select>
           </div>
         </div>
@@ -740,12 +755,102 @@
         </div>
 
         <!-- Lab Results & Bills Tab -->
-        <div *ngIf="activeTab === 'billing'" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div class="bg-white border border-slate-200 p-6 rounded-2xl space-y-3 shadow-sm hover:shadow-md transition">
-            <span class="text-3xl">🧪</span>
-            <h2 class="text-xl font-bold text-slate-900">Lab Results & Bills</h2>
-            <p class="text-slate-600 text-sm">Download diagnostic reports and view payment invoices online securely.</p>
+        <div *ngIf="activeTab === 'billing'" class="space-y-6">
+          
+          <!-- Section 1: Laboratory Diagnostic Reports -->
+          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">🔬</span>
+                <h2 class="text-lg font-bold text-slate-900">Diagnostic Laboratory Reports</h2>
+              </div>
+              <span class="text-xs font-semibold text-slate-400">Total: {{ patientLabReports.length }}</span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 border-b border-slate-200/80 text-slate-400 font-bold uppercase text-[9px] tracking-wider">
+                    <th class="p-3">Test Name</th>
+                    <th class="p-3">Date</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3 text-right">Report Document</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-[11px]">
+                  <tr *ngFor="let r of patientLabReports" class="hover:bg-slate-50/50 transition">
+                    <td class="p-3 font-bold text-slate-800">{{ r.testName }}</td>
+                    <td class="p-3 text-slate-500 font-semibold">{{ r.date }}</td>
+                    <td class="p-3">
+                      <span [class]="r.status === 'Completed' ? 'px-2 py-0.5 bg-green-50 text-green-700 rounded border border-green-200' : 'px-2 py-0.5 bg-slate-50 text-slate-500 rounded border border-slate-200'">
+                        {{ r.status || 'Requested' }}
+                      </span>
+                    </td>
+                    <td class="p-3 text-right">
+                      <a 
+                        *ngIf="r.uploadedFileUrl" 
+                        [href]="r.uploadedFileUrl" 
+                        target="_blank" 
+                        class="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-[10px] transition cursor-pointer inline-flex items-center gap-1 shadow-sm"
+                      >
+                        <span>📥</span> Download Report
+                      </a>
+                      <span *ngIf="!r.uploadedFileUrl" class="text-[10px] text-slate-400 italic">Processing Report...</span>
+                    </td>
+                  </tr>
+                  <tr *ngIf="patientLabReports.length === 0">
+                    <td colspan="4" class="text-center py-8 text-slate-400 italic font-medium">No lab reports available yet.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
+
+          <!-- Section 2: Consultation Reports & Summaries -->
+          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">🩺</span>
+                <h2 class="text-lg font-bold text-slate-900">Consultation Summaries & Bills</h2>
+              </div>
+              <span class="text-xs font-semibold text-slate-400">Total: {{ patientConsultations.length }}</span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 border-b border-slate-200/80 text-slate-400 font-bold uppercase text-[9px] tracking-wider">
+                    <th class="p-3">Date</th>
+                    <th class="p-3">Doctor</th>
+                    <th class="p-3">Diagnosis</th>
+                    <th class="p-3 text-right">Report Document</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-[11px]">
+                  <tr *ngFor="let c of patientConsultations" class="hover:bg-slate-50/50 transition">
+                    <td class="p-3 font-semibold text-slate-800">{{ c.date }}</td>
+                    <td class="p-3 font-bold text-slate-800">{{ c.doctorName }}</td>
+                    <td class="p-3 text-slate-600 font-medium">{{ c.diagnosis || 'Pending' }}</td>
+                    <td class="p-3 text-right">
+                      <a 
+                        *ngIf="c.uploadedFileUrl" 
+                        [href]="c.uploadedFileUrl" 
+                        target="_blank" 
+                        class="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-[10px] transition cursor-pointer inline-flex items-center gap-1 shadow-sm"
+                      >
+                        <span>📄</span> Download Report
+                      </a>
+                      <span *ngIf="!c.uploadedFileUrl" class="text-[10px] text-slate-400 italic">No document available</span>
+                    </td>
+                  </tr>
+                  <tr *ngIf="patientConsultations.length === 0">
+                    <td colspan="4" class="text-center py-8 text-slate-400 italic font-medium">No consultation records available yet.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
         </div>
 
       </div>

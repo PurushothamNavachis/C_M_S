@@ -47,6 +47,7 @@ export class PatientPage implements OnInit {
     email: '',
     mobile_number: '',
     blood_group: '',
+    gender: '',
     password: '',
     password_confirm: ''
   };
@@ -81,6 +82,10 @@ export class PatientPage implements OnInit {
     this.bookingForm.date = this.minDate;
   }
 
+  patientConsultations: any[] = [];
+  patientLabReports: any[] = [];
+  reportsLoading: boolean = false;
+
   checkAuth() {
     const token = localStorage.getItem('access_token');
     if (!token) {
@@ -106,6 +111,10 @@ export class PatientPage implements OnInit {
             blood_group: user.patient?.blood_group || '',
             password: ''
           };
+
+          if (user.patient?.id) {
+            this.loadPatientReports(user.patient.id);
+          }
         } else {
           this.isLoggedIn = false;
           this.currentUser = null;
@@ -120,6 +129,27 @@ export class PatientPage implements OnInit {
         this.currentUser = null;
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+      }
+    });
+  }
+
+  loadPatientReports(patientId: string) {
+    this.reportsLoading = true;
+    this.api.get(`clinical/patients/${patientId}/consultations`).subscribe({
+      next: (data: any[]) => {
+        this.patientConsultations = data.filter(c => c.uploadedFileUrl || c.status === 'Finalized');
+      },
+      error: (err) => console.error('Failed to fetch consultations for portal', err)
+    });
+
+    this.api.get(`clinical/patients/${patientId}/lab-requests`).subscribe({
+      next: (data: any[]) => {
+        this.patientLabReports = data.filter(r => r.uploadedFileUrl || r.status === 'FINALIZED');
+        this.reportsLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to fetch lab reports for portal', err);
+        this.reportsLoading = false;
       }
     });
   }
@@ -376,7 +406,7 @@ export class PatientPage implements OnInit {
   ];
 
   minutesList = [
-    '00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'
+    '00', '15', '30', '45'
   ];
 
   departments = [

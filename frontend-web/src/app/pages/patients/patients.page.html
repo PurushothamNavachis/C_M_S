@@ -1,0 +1,104 @@
+<ion-content>
+  <div class="bg-slate-50 text-slate-800 min-h-screen p-4 md:p-8 space-y-6">
+    
+    <!-- Header with back button -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/50 pb-4">
+      <div class="flex items-center gap-3">
+        <button routerLink="/administration" class="px-3.5 py-2 bg-white border border-slate-200 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm hover:bg-slate-50 cursor-pointer">
+          <span>← Back to Dashboard</span>
+        </button>
+        <div>
+          <h1 class="text-lg font-black tracking-tight text-slate-900 flex items-center gap-2">
+            <span>📋</span> Registered Patients Directory
+          </h1>
+          <p class="text-[11px] text-slate-500 font-medium">Detailed roster of patient accounts registered in the database</p>
+        </div>
+      </div>
+      
+      <button (click)="loadPatients()" class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5 cursor-pointer">
+        <span>🔄 Refresh List</span>
+      </button>
+    </div>
+
+    <!-- Search Bar -->
+    <div *ngIf="!loading" class="bg-white border border-slate-200 p-3 rounded-2xl shadow-sm flex flex-col md:flex-row gap-3 items-center max-w-xl font-sans">
+      <div class="relative w-full">
+        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 pointer-events-none text-xs">🔍</span>
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm" 
+          class="w-full pl-8 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-green-500 focus:bg-white transition"
+          placeholder="Search by Patient Name or Customer Card ID..." 
+        />
+        <button 
+          *ngIf="searchTerm" 
+          (click)="searchTerm = ''" 
+          class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 transition cursor-pointer text-xs"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex flex-col items-center justify-center py-12 space-y-3">
+      <span class="text-4xl animate-spin block">⚙️</span>
+      <p class="text-xs text-slate-500 font-medium animate-pulse">Retrieving registered patients...</p>
+    </div>
+
+    <!-- Patients List Table Card -->
+    <div *ngIf="!loading" class="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden font-sans">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200/80 text-slate-400 font-bold uppercase text-[9px] tracking-wider">
+              <th class="p-4">Customer ID</th>
+              <th class="p-4">Patient Name</th>
+              <th class="p-4">Email Address</th>
+              <th class="p-4">Phone Number</th>
+              <th class="p-4 text-center">Blood Group</th>
+              <th class="p-4 text-center">Gender</th>
+              <th class="p-4 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-[11px]">
+            <tr *ngFor="let p of filteredPatients" class="hover:bg-slate-50/50 transition">
+              <td class="p-4 font-mono text-teal-800 font-bold">
+                #{{ p.id ? p.id.slice(0, 8).toUpperCase() : 'N/A' }}
+              </td>
+              <td class="p-4 font-bold text-slate-800">{{ p.name }}</td>
+              <td class="p-4 text-slate-600 font-medium">{{ p.email }}</td>
+              <td class="p-4 text-slate-600 font-medium">{{ p.phone || 'N/A' }}</td>
+              <td class="p-4 text-center">
+                <span class="px-2 py-0.5 bg-rose-50 text-rose-700 font-black rounded border border-rose-100 text-[10px]">
+                  {{ p.blood_group || 'N/A' }}
+                </span>
+              </td>
+              <td class="p-4 text-center text-slate-500 font-semibold">{{ p.gender || 'N/A' }}</td>
+              <td class="p-4 text-right space-x-1.5">
+                <button 
+                  [routerLink]="['/patients', p.id, 'consultations']"
+                  class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-[10px] transition cursor-pointer shadow-sm"
+                >
+                  Consultation
+                </button>
+                <button 
+                  [routerLink]="['/patients', p.id, 'laboratories']"
+                  class="px-2.5 py-1 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-lg text-[10px] transition cursor-pointer shadow-sm"
+                >
+                  Laboratory
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="filteredPatients.length === 0">
+              <td colspan="7" class="text-center py-12 text-slate-400 italic font-medium">
+                No matching registered patient profiles found.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

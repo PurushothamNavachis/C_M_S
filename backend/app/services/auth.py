@@ -50,7 +50,7 @@ class AuthService:
             id=str(uuid.uuid4()),
             user_id=new_user.id,
             dob=date(1990, 1, 1), # Default DOB
-            gender="Not Specified", # Default Gender
+            gender=schema.gender or "Not Specified", # Selected Gender
             blood_group=schema.blood_group,
             phone=schema.mobile_number or "Not Provided"
         )

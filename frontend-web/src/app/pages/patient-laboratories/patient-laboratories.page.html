@@ -1,0 +1,241 @@
+<ion-content>
+  <div class="bg-slate-50 text-slate-800 min-h-screen p-4 md:p-8 space-y-6">
+    
+    <!-- Header with back button -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/50 pb-4">
+      <div class="flex items-center gap-3">
+        <button routerLink="/patients" class="px-3.5 py-2 bg-white border border-slate-200 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm hover:bg-slate-50 cursor-pointer">
+          <span>← Back to Patients</span>
+        </button>
+        <div>
+          <h1 class="text-lg font-black tracking-tight text-slate-900 flex items-center gap-2">
+            <span>🔬</span> Laboratory Reports & Bookings
+          </h1>
+          <p class="text-[11px] text-slate-500 font-medium">
+            Patient: <span class="font-bold text-slate-800">{{ patientName || 'Retrieving...' }}</span>
+          </p>
+        </div>
+      </div>
+      
+      <button (click)="loadLabRequests()" class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5 cursor-pointer">
+        <span>🔄 Refresh Reports</span>
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex flex-col items-center justify-center py-12 space-y-3">
+      <span class="text-4xl animate-spin block">⚙️</span>
+      <p class="text-xs text-slate-500 font-medium animate-pulse">Loading reports...</p>
+    </div>
+
+    <!-- Lab Reports List Table Card -->
+    <div *ngIf="!loading" class="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden font-sans">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200/80 text-slate-400 font-bold uppercase text-[9px] tracking-wider">
+              <th class="p-4">Test Name</th>
+              <th class="p-4">Request Date</th>
+              <th class="p-4">Status</th>
+              <th class="p-4">Report Document</th>
+              <th class="p-4 text-right">Send Report</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-[11px]">
+            <tr *ngFor="let r of reportsList" class="hover:bg-slate-50/50 transition">
+              <td class="p-4 font-bold text-slate-800">{{ r.testName }}</td>
+              <td class="p-4 text-slate-600 font-semibold">{{ r.date }}</td>
+              <td class="p-4 font-semibold text-slate-600">
+                <span 
+                  [ngClass]="{
+                    'bg-slate-100 text-slate-700 border-slate-200': r.status === 'PENDING',
+                    'bg-sky-50 text-sky-700 border-sky-200': r.status === 'APPROVED',
+                    'bg-amber-50 text-amber-700 border-amber-200': r.status === 'COMPLETED',
+                    'bg-green-50 text-green-700 border-green-200': r.status === 'FINALIZED',
+                    'bg-red-50 text-red-700 border-red-200': r.status === 'CANCELLED'
+                  }"
+                  class="px-2 py-0.5 rounded border text-[10px] font-bold whitespace-nowrap shrink-0 inline-block"
+                >
+                  {{ r.status || 'PENDING' }}
+                </span>
+              </td>
+              <td class="p-4">
+                <a 
+                  *ngIf="r.uploadedFileUrl" 
+                  [href]="r.uploadedFileUrl" 
+                  target="_blank" 
+                  class="px-2.5 py-1 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-700 font-bold rounded-lg text-[10px] transition cursor-pointer inline-flex items-center gap-1"
+                >
+                  <span>📄</span> View Document
+                </a>
+                <span *ngIf="!r.uploadedFileUrl" class="text-[10px] text-slate-400 italic">No document uploaded</span>
+              </td>
+              <td class="p-4 text-right">
+                <!-- Receptionist, Admin, Super Admin Actions -->
+                <div *ngIf="userRole === 'RECEPTIONIST' || userRole === 'SUPER_ADMIN' || userRole === 'ADMIN'" class="flex justify-end gap-1.5">
+                  <button 
+                    *ngIf="r.status === 'PENDING'"
+                    (click)="approveLab(r.date)"
+                    [disabled]="actionLoading"
+                    class="px-2.5 py-1 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-[10px] transition cursor-pointer shadow-sm"
+                  >
+                    ✔️ Approve
+                  </button>
+                  <button 
+                    *ngIf="r.status === 'PENDING'"
+                    (click)="cancelLab(r.date)"
+                    [disabled]="actionLoading"
+                    class="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg text-[10px] transition cursor-pointer shadow-sm"
+                  >
+                    ❌ Cancel
+                  </button>
+                  <button 
+                    *ngIf="r.status === 'COMPLETED'"
+                    (click)="finalizeLab(r)"
+                    [disabled]="actionLoading"
+                    class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-[10px] transition cursor-pointer shadow-sm"
+                  >
+                    📤 Finalize
+                  </button>
+                  <span *ngIf="r.status === 'APPROVED'" class="text-[10px] text-sky-600 font-bold italic">Approved / Scheduled</span>
+                  <span *ngIf="r.status === 'FINALIZED'" class="text-[10px] text-green-600 font-bold italic">Finalized</span>
+                  <span *ngIf="r.status === 'CANCELLED'" class="text-[10px] text-red-500 font-bold italic">Cancelled</span>
+                </div>
+
+                <!-- Lab Assistant (LAB_AC), Doctor Actions -->
+                <div *ngIf="userRole === 'LAB_AC' || userRole === 'DOCTOR'">
+                  <button 
+                    *ngIf="r.status === 'APPROVED'"
+                    (click)="openResultsModal(r)"
+                    class="px-2.5 py-1 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-lg text-[10px] transition cursor-pointer shadow-sm flex items-center gap-1"
+                  >
+                    <span>🧪</span> Enter Results
+                  </button>
+                  <span *ngIf="r.status === 'PENDING'" class="text-[10px] text-slate-400 italic">Awaiting Desk Approval</span>
+                  <span *ngIf="r.status === 'COMPLETED'" class="text-[10px] text-amber-600 font-bold italic">Awaiting Finalization</span>
+                  <span *ngIf="r.status === 'FINALIZED'" class="text-[10px] text-green-600 font-bold italic">Finalized</span>
+                  <span *ngIf="r.status === 'CANCELLED'" class="text-[10px] text-red-500 font-bold italic">Cancelled</span>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="reportsList.length === 0">
+              <td colspan="5" class="text-center py-12 text-slate-400 italic font-medium">
+                No laboratory report records found for this patient.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Lab Results Entry Modal Dialog -->
+    <div *ngIf="showResultsForm" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl max-w-md w-full mx-4 space-y-4 relative animate-fade-in font-sans">
+        <button 
+          (click)="closeResultsModal()" 
+          class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition text-lg font-bold w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded-full cursor-pointer"
+        >
+          ✕
+        </button>
+        
+        <div>
+          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>🔬</span> Enter Laboratory Test Results
+          </h2>
+          <p class="text-[11px] text-slate-500">Record final result values for requested diagnostics</p>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Test Result Values / Description</label>
+            <textarea 
+              [(ngModel)]="resultsForm.resultValue" 
+              rows="4"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs"
+              placeholder="e.g. Hemoglobin: 14.5 g/dL (Normal: 13.5-17.5), Fasting Blood Sugar: 95 mg/dL"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button 
+            (click)="closeResultsModal()" 
+            class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition cursor-pointer text-xs"
+          >
+            Cancel
+          </button>
+          <button 
+            (click)="submitResults()" 
+            [disabled]="actionLoading"
+            class="px-3.5 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition cursor-pointer text-xs shadow-sm flex items-center gap-1"
+          >
+            <span *ngIf="actionLoading" class="animate-spin text-[10px]">⚙️</span>
+            <span>Submit Results</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Report Popup Dialog -->
+    <div *ngIf="editingReportId !== null" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl max-w-md w-full mx-4 space-y-4 font-sans relative animate-fade-in">
+        <button 
+          (click)="cancelEdit()" 
+          class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition text-lg font-bold w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded-full cursor-pointer"
+        >
+          ✕
+        </button>
+        
+        <div>
+          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>✏️</span> Edit Laboratory Report
+          </h2>
+          <p class="text-[11px] text-slate-500">Update status and reported document URL</p>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Report Status</label>
+            <select 
+              [(ngModel)]="editStatus" 
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-green-500 focus:bg-white transition cursor-pointer text-xs"
+            >
+              <option value="Requested">Requested</option>
+              <option value="Booked">Booked</option>
+              <option value="Completed">Completed</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Document Link / URL</label>
+            <input 
+              type="text" 
+              [(ngModel)]="editFileUrl" 
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-green-500 focus:bg-white transition text-xs"
+              placeholder="e.g. https://example.com/reports/report1.pdf"
+            />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button 
+            (click)="cancelEdit()" 
+            class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition cursor-pointer text-xs"
+          >
+            Cancel
+          </button>
+          <button 
+            (click)="saveReport()" 
+            [disabled]="saving"
+            class="px-3.5 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition cursor-pointer text-xs shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+          >
+            <span *ngIf="saving" class="animate-spin text-[10px]">⚙️</span>
+            <span>Save Details</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

@@ -50,6 +50,18 @@ const routes: Routes = [
   {
     path: 'administration',
     loadChildren: () => import('./pages/administration/administration.module').then( m => m.AdministrationPageModule)
+  },
+  {
+    path: 'patients',
+    loadChildren: () => import('./pages/patients/patients.module').then( m => m.PatientsPageModule)
+  },
+  {
+    path: 'patients/:id/consultations',
+    loadChildren: () => import('./pages/patient-consultations/patient-consultations.module').then( m => m.PatientConsultationsPageModule)
+  },
+  {
+    path: 'patients/:id/laboratories',
+    loadChildren: () => import('./pages/patient-laboratories/patient-laboratories.module').then( m => m.PatientLaboratoriesPageModule)
   }
 ];
 @NgModule({

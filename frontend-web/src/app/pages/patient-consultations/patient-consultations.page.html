@@ -1,0 +1,209 @@
+<ion-content>
+  <div class="bg-slate-50 text-slate-800 min-h-screen p-4 md:p-8 space-y-6">
+    
+    <!-- Header with back button -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/50 pb-4">
+      <div class="flex items-center gap-3">
+        <button routerLink="/patients" class="px-3.5 py-2 bg-white border border-slate-200 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm hover:bg-slate-50 cursor-pointer">
+          <span>← Back to Patients</span>
+        </button>
+        <div>
+          <h1 class="text-lg font-black tracking-tight text-slate-900 flex items-center gap-2">
+            <span>🩺</span> Consultations History
+          </h1>
+          <p class="text-[11px] text-slate-500 font-medium">
+            Patient: <span class="font-bold text-slate-800">{{ patientName || 'Retrieving...' }}</span>
+          </p>
+        </div>
+      </div>
+      
+      <button (click)="loadConsultations()" class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5 cursor-pointer">
+        <span>🔄 Refresh History</span>
+      </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex flex-col items-center justify-center py-12 space-y-3">
+      <span class="text-4xl animate-spin block">⚙️</span>
+      <p class="text-xs text-slate-500 font-medium animate-pulse">Loading consultations...</p>
+    </div>
+
+    <!-- Consultations List Table Card -->
+    <div *ngIf="!loading" class="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden font-sans">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200/80 text-slate-400 font-bold uppercase text-[9px] tracking-wider">
+              <th class="p-4">Date</th>
+              <th class="p-4">Time Slot</th>
+              <th class="p-4">Assigned Doctor</th>
+              <th class="p-4">Symptoms</th>
+              <th class="p-4">Diagnosis</th>
+              <th class="p-4">Doctor Notes</th>
+              <th class="p-4">Report Document</th>
+              <th class="p-4 text-right">Send Report</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100 text-[11px]">
+            <tr *ngFor="let c of consultationsList" class="hover:bg-slate-50/50 transition">
+              <td class="p-4 font-semibold text-slate-800">{{ c.date }}</td>
+              <td class="p-4 text-teal-800 font-bold">
+                <span class="px-2 py-0.5 bg-teal-50 text-teal-700 font-black rounded border border-teal-100 text-[10px]">
+                  {{ c.timeSlot }}
+                </span>
+              </td>
+              <td class="p-4 font-bold text-slate-800">{{ c.doctorName }}</td>
+              <td class="p-4 text-slate-600 font-medium max-w-[180px] whitespace-normal leading-relaxed">{{ c.symptoms || 'None Reported' }}</td>
+              <td class="p-4 font-semibold text-slate-800">
+                <span 
+                  [ngClass]="{
+                    'bg-slate-100 text-slate-700 border-slate-200': c.status === 'Requested',
+                    'bg-sky-50 text-sky-700 border-sky-200': c.status === 'Scheduled',
+                    'bg-amber-50 text-amber-700 border-amber-200': c.status === 'Doctor Completed',
+                    'bg-green-50 text-green-700 border-green-200': c.status === 'Finalized',
+                    'bg-red-50 text-red-700 border-red-200': c.status === 'Cancelled'
+                  }"
+                  class="px-2 py-0.5 rounded border text-[10px] font-bold whitespace-nowrap shrink-0 inline-block"
+                >
+                  {{ c.status || 'Requested' }}
+                </span>
+              </td>
+              <td class="p-4">
+                <a 
+                  *ngIf="c.uploadedFileUrl" 
+                  [href]="c.uploadedFileUrl" 
+                  target="_blank" 
+                  class="px-2.5 py-1 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-700 font-bold rounded-lg text-[10px] transition cursor-pointer inline-flex items-center gap-1"
+                >
+                  <span>📄</span> View Document
+                </a>
+                <span *ngIf="!c.uploadedFileUrl" class="text-[10px] text-slate-400 italic">No document uploaded</span>
+              </td>
+              <td class="p-4 text-right">
+                <!-- Receptionist, Admin, Super Admin Actions -->
+                <div *ngIf="userRole === 'RECEPTIONIST' || userRole === 'SUPER_ADMIN' || userRole === 'ADMIN'" class="flex justify-end gap-1.5">
+                  <button 
+                    *ngIf="c.status === 'Requested'"
+                    (click)="approveAppt(c.id)"
+                    [disabled]="actionLoading"
+                    class="px-2.5 py-1 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-[10px] transition cursor-pointer shadow-sm"
+                  >
+                    ✔️ Approve
+                  </button>
+                  <button 
+                    *ngIf="c.status === 'Requested'"
+                    (click)="cancelAppt(c.id)"
+                    [disabled]="actionLoading"
+                    class="px-2.5 py-1 bg-red-650 hover:bg-red-750 text-white font-bold rounded-lg text-[10px] transition cursor-pointer shadow-sm"
+                  >
+                    ❌ Cancel
+                  </button>
+                  <button 
+                    *ngIf="c.status === 'Doctor Completed'"
+                    (click)="finalizeConsult(c.id)"
+                    [disabled]="actionLoading"
+                    class="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-[10px] transition cursor-pointer shadow-sm"
+                  >
+                    📤 Finalize
+                  </button>
+                  <span *ngIf="c.status === 'Scheduled'" class="text-[10px] text-sky-600 font-bold italic">Approved / Scheduled</span>
+                  <span *ngIf="c.status === 'Finalized'" class="text-[10px] text-green-600 font-bold italic">Finalized</span>
+                  <span *ngIf="c.status === 'Cancelled'" class="text-[10px] text-red-500 font-bold italic">Cancelled</span>
+                </div>
+
+                <!-- Doctor Actions -->
+                <div *ngIf="userRole === 'DOCTOR'">
+                  <button 
+                    *ngIf="c.status === 'Scheduled'"
+                    (click)="openConsultModal(c)"
+                    class="px-2.5 py-1 bg-teal-655 hover:bg-teal-755 text-white font-bold rounded-lg text-[10px] transition cursor-pointer shadow-sm flex items-center gap-1"
+                  >
+                    <span>🩺</span> Consult
+                  </button>
+                  <span *ngIf="c.status === 'Requested'" class="text-[10px] text-slate-400 italic">Awaiting Desk Approval</span>
+                  <span *ngIf="c.status === 'Doctor Completed'" class="text-[10px] text-amber-600 font-bold italic">Awaiting Finalization</span>
+                  <span *ngIf="c.status === 'Finalized'" class="text-[10px] text-green-600 font-bold italic">Finalized</span>
+                  <span *ngIf="c.status === 'Cancelled'" class="text-[10px] text-red-500 font-bold italic">Cancelled</span>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="consultationsList.length === 0">
+              <td colspan="8" class="text-center py-12 text-slate-400 italic font-medium">
+                No consultation records found for this patient.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Doctor Consult Modal Dialog -->
+    <div *ngIf="showConsultForm" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl max-w-md w-full mx-4 space-y-4 relative animate-fade-in font-sans">
+        <button 
+          (click)="closeConsultModal()" 
+          class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition text-lg font-bold w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded-full cursor-pointer"
+        >
+          ✕
+        </button>
+        
+        <div>
+          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>🩺</span> Perform Patient Consultation
+          </h2>
+          <p class="text-[11px] text-slate-500">Record checkup symptoms, diagnosis, and prescriptions</p>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Symptoms</label>
+            <input 
+              type="text" 
+              [(ngModel)]="consultForm.symptoms" 
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs"
+              placeholder="e.g. Fever, Cough, Headache"
+            />
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Diagnosis</label>
+            <input 
+              type="text" 
+              [(ngModel)]="consultForm.diagnosis" 
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs"
+              placeholder="e.g. Acute Viral Bronchitis"
+            />
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Doctor Notes & Prescriptions</label>
+            <textarea 
+              [(ngModel)]="consultForm.doctorNotes" 
+              rows="3"
+              class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none text-xs"
+              placeholder="e.g. Paracetamol 500mg, rest for 3 days"
+            ></textarea>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button 
+            (click)="closeConsultModal()" 
+            class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition cursor-pointer text-xs"
+          >
+            Cancel
+          </button>
+          <button 
+            (click)="submitConsultDetails()" 
+            [disabled]="actionLoading"
+            class="px-3.5 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition cursor-pointer text-xs shadow-sm flex items-center gap-1"
+          >
+            <span *ngIf="actionLoading" class="animate-spin text-[10px]">⚙️</span>
+            <span>Submit Checkup</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

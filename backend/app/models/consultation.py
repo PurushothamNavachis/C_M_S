@@ -10,6 +10,7 @@ class Consultation(Base):
     symptoms: Mapped[str] = mapped_column(Text, nullable=True)
     diagnosis: Mapped[str] = mapped_column(Text, nullable=True)
     doctor_notes: Mapped[str] = mapped_column(Text, nullable=True)
+    uploaded_file_url: Mapped[str] = mapped_column(String(512), nullable=True)
 
     # Relationships
     appointment: Mapped["Appointment"] = relationship("Appointment", back_populates="consultation")

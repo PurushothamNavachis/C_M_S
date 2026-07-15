@@ -78,7 +78,7 @@
     <!-- ========================================== -->
     <!-- 1. SUPER ADMIN VIEW -->
     <!-- ========================================== -->
-    <div *ngIf="activePerspective === 'SUPER_ADMIN'" class="max-w-4xl mx-auto w-full text-xs flex gap-3">
+    <div *ngIf="activePerspective === 'SUPER_ADMIN'" class="w-full text-xs flex gap-3">
       <!-- Left Settings Bar -->
       <div [class]="sidebarOpen ? 'w-44' : 'w-12'" class="bg-white border border-slate-200 rounded-2xl p-2 shadow-sm transition-all duration-300 flex flex-col items-stretch self-start font-sans sticky top-4">
         <button (click)="sidebarOpen = !sidebarOpen" class="p-2 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-sm font-bold transition flex items-center justify-center cursor-pointer mb-2" [title]="sidebarOpen ? 'Collapse Menu' : 'Expand Menu'">
@@ -87,7 +87,7 @@
         <div *ngIf="sidebarOpen" class="px-2 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-2">
           Settings
         </div>
-        <button (click)="showPatientDetailsPlaceholder()" class="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition flex items-center justify-start gap-2 cursor-pointer mb-1" [title]="'Patients Details'">
+        <button routerLink="/patients" class="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition flex items-center justify-start gap-2 cursor-pointer mb-1" [title]="'Patients Details'">
           <span class="text-sm">📋</span>
           <span *ngIf="sidebarOpen" class="font-bold text-xs ml-2">Patients Details</span>
         </button>
@@ -321,7 +321,7 @@
     <!-- ========================================== -->
     <!-- 2. ADMIN VIEW -->
     <!-- ========================================== -->
-    <div *ngIf="activePerspective === 'ADMIN'" class="max-w-4xl mx-auto w-full text-xs flex gap-3">
+    <div *ngIf="activePerspective === 'ADMIN'" class="w-full text-xs flex gap-3">
       <!-- Left Settings Bar -->
       <div [class]="sidebarOpen ? 'w-44' : 'w-12'" class="bg-white border border-slate-200 rounded-2xl p-2 shadow-sm transition-all duration-300 flex flex-col items-stretch self-start font-sans sticky top-4">
         <button (click)="sidebarOpen = !sidebarOpen" class="p-2 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-sm font-bold transition flex items-center justify-center cursor-pointer mb-2" [title]="sidebarOpen ? 'Collapse Menu' : 'Expand Menu'">
@@ -330,7 +330,7 @@
         <div *ngIf="sidebarOpen" class="px-2 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-2">
           Settings
         </div>
-        <button (click)="showPatientDetailsPlaceholder()" class="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition flex items-center justify-start gap-2 cursor-pointer mb-1" [title]="'Patients Details'">
+        <button routerLink="/patients" class="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition flex items-center justify-start gap-2 cursor-pointer mb-1" [title]="'Patients Details'">
           <span class="text-sm">📋</span>
           <span *ngIf="sidebarOpen" class="font-bold text-xs ml-2">Patients Details</span>
         </button>
@@ -543,7 +543,7 @@
     <!-- ========================================== -->
     <!-- 3. RECEPTIONIST (RAC) VIEW -->
     <!-- ========================================== -->
-    <div *ngIf="activePerspective === 'RECEPTIONIST'" class="max-w-4xl mx-auto w-full text-xs flex gap-3">
+    <div *ngIf="activePerspective === 'RECEPTIONIST'" class="w-full text-xs flex gap-3">
       <!-- Left Settings Bar -->
       <div [class]="sidebarOpen ? 'w-44' : 'w-12'" class="bg-white border border-slate-200 rounded-2xl p-2 shadow-sm transition-all duration-300 flex flex-col items-stretch self-start font-sans sticky top-4">
         <button (click)="sidebarOpen = !sidebarOpen" class="p-2 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-sm font-bold transition flex items-center justify-center cursor-pointer mb-2" [title]="sidebarOpen ? 'Collapse Menu' : 'Expand Menu'">
@@ -556,108 +556,277 @@
           <span class="text-sm font-black text-center w-5">+</span>
           <span *ngIf="sidebarOpen" class="font-bold text-xs ml-1.5">Register Patient</span>
         </button>
-        <button (click)="showPatientDetailsPlaceholder()" class="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition flex items-center justify-start gap-2 cursor-pointer mb-1" [title]="'Patients Details'">
+        <button routerLink="/patients" class="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition flex items-center justify-start gap-2 cursor-pointer mb-1" [title]="'Patients Details'">
           <span class="text-sm">📋</span>
           <span *ngIf="sidebarOpen" class="font-bold text-xs ml-2">Patients Details</span>
+        </button>
+        <button (click)="showScheduleMatrixModal = true" class="w-full p-2 rounded-xl hover:bg-slate-50 text-teal-600 hover:text-teal-700 transition flex items-center justify-start gap-2 cursor-pointer mb-1" [title]="'Schedule Matrix'">
+          <span class="text-sm">📅</span>
+          <span *ngIf="sidebarOpen" class="font-bold text-xs ml-2">Schedule Matrix</span>
         </button>
         <button (click)="openSelfProfile()" class="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition flex items-center justify-start gap-2 cursor-pointer" [title]="'Profile Settings'">
           <span class="text-sm">👤</span>
           <span *ngIf="sidebarOpen" class="font-bold text-xs ml-2">Profile Settings</span>
         </button>
-      </div>
+
+        </div>
 
       <!-- Right Dashboard Content -->
       <div class="flex-1 space-y-3">
 
-        <!-- Staff Directory Panel -->
-        <div class="bg-white border border-slate-200 p-3.5 rounded-xl shadow-sm space-y-3">
-          <div class="flex items-center justify-between">
-            <div>
-              <h2 class="text-sm font-bold text-slate-900">Clinical & Laboratory Staff</h2>
-              <p class="text-[10px] text-slate-400">Doctors and laboratory assistants directory</p>
+        <!-- Grid Row: Staff Directory Panel & Doctors Directory Panel -->
+        <div class="grid grid-cols-1 lg:grid-cols-[3fr_2fr] gap-3">
+          
+          <!-- Staff Directory Panel -->
+          <div class="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <h2 class="text-base font-bold text-slate-900">Clinical & Laboratory Staff</h2>
+                <p class="text-xs text-slate-400">Doctors and laboratory assistants directory</p>
+              </div>
+              <button (click)="loadUsers()" class="text-xs text-green-600 hover:text-green-800 font-bold flex items-center gap-1 transition cursor-pointer">
+                🔄 Refresh
+              </button>
             </div>
-            <button (click)="loadUsers()" class="text-[10px] text-green-600 hover:text-green-800 font-bold flex items-center gap-1 transition">
-              🔄 Refresh List
-            </button>
-          </div>
-
-          <!-- Search & Filter Controls -->
-          <div [class]="roleFilter === 'DOCTOR' ? 'grid grid-cols-1 sm:grid-cols-3 gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100' : 'grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 p-2 rounded-lg border border-slate-100'">
-            <div class="space-y-0.5">
-              <label class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Search</label>
-              <input 
-                type="text" 
-                [(ngModel)]="searchTerm" 
-                class="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs outline-none focus:border-green-500" 
-                placeholder="Search staff..."/>
+   
+            <!-- Search & Filter Controls -->
+            <div [class]="roleFilter === 'DOCTOR' ? 'grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100' : 'grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100'">
+              <div class="space-y-0.5">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Search</label>
+                <input 
+                  type="text" 
+                  [(ngModel)]="searchTerm" 
+                  class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:border-green-500" 
+                  placeholder="Search staff..."/>
+              </div>
+              <div class="space-y-0.5">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Role</label>
+                <select 
+                  [(ngModel)]="roleFilter" 
+                  class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:border-green-500 cursor-pointer text-slate-700">
+                  <option value="ALL">All Roles</option>
+                  <option value="DOCTOR">Doctor</option>
+                  <option value="LAB_AC">Lab Assistant (Lab AC)</option>
+                </select>
+              </div>
+              <div *ngIf="roleFilter === 'DOCTOR'" class="space-y-0.5">
+                <label class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Specialization</label>
+                <input 
+                  type="text" 
+                  [(ngModel)]="specializationFilter" 
+                  class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-sm outline-none focus:border-green-500" 
+                  placeholder="e.g. Cardiologist"/>
+              </div>
             </div>
-            <div class="space-y-0.5">
-              <label class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Role</label>
-              <select 
-                [(ngModel)]="roleFilter" 
-                class="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs outline-none focus:border-green-500 text-slate-700">
-                <option value="ALL">All Roles</option>
-                <option value="RECEPTIONIST">Receptionist (RAC)</option>
-                <option value="DOCTOR">Doctor</option>
-                <option value="LAB_AC">Lab Assistant (Lab AC)</option>
-              </select>
-            </div>
-            <div *ngIf="roleFilter === 'DOCTOR' || roleFilter === 'RECEPTIONIST'" class="space-y-0.5">
-              <label class="text-[9px] font-bold uppercase tracking-wider text-slate-400">Specialization</label>
-              <input 
-                type="text" 
-                [(ngModel)]="specializationFilter" 
-                class="w-full px-2 py-1 bg-white border border-slate-200 rounded-md text-xs outline-none focus:border-green-500" 
-                placeholder="e.g. Cardiologist / Billing"/>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr class="border-b border-slate-100 text-slate-400 text-[10px] uppercase tracking-wider">
-                  <th class="py-2 font-semibold">Staff Member</th>
-                  <th class="py-2 font-semibold">Role</th>
-                  <th class="py-2 font-semibold">Mobile Number</th>
-                  <th class="py-2 font-semibold">Status</th>
-                  <th class="py-2 font-semibold">Specialization / Info</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-50 text-[11px]">
-                <tr *ngFor="let user of filteredUsers">
-                  <td class="py-2">
-                    <div class="font-bold text-slate-800">{{ user.username }}</div>
-                    <div class="text-[9px] text-slate-400">{{ user.email }}</div>
-                  </td>
-                  <td class="py-2">
-                    <span class="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded text-[9px] font-semibold uppercase">{{ user.role?.name }}</span>
-                  </td>
-                  <td class="py-2">
-                    <div class="flex items-center gap-1">
-                      <span class="font-medium text-slate-700">{{ user.mobile_number || 'N/A' }}</span>
-                      <span *ngIf="user.mobile_number" class="inline-flex items-center gap-0.5 ml-1">
-                        <a [href]="'tel:' + user.mobile_number" class="px-1 bg-slate-100 border border-slate-200 text-blue-500 rounded text-[9px] font-bold transition hover:bg-slate-200 hover:scale-105" title="Call">📞</a>
-                        <a [href]="'https://wa.me/' + user.mobile_number.replace('+', '').replace(' ', '')" target="_blank" class="px-1 bg-slate-100 border border-slate-200 text-green-500 rounded text-[9px] font-bold transition hover:bg-slate-200 hover:scale-105" title="WhatsApp">💬</a>
+   
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr class="border-b border-slate-100 text-slate-400 text-xs uppercase tracking-wider">
+                    <th class="py-3 font-semibold">Staff Member</th>
+                    <th class="py-3 font-semibold">Role</th>
+                    <th class="py-3 font-semibold">Mobile Number</th>
+                    <th class="py-3 font-semibold">Status</th>
+                    <th class="py-3 font-semibold">Specialization / Info</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                  <tr *ngFor="let user of filteredUsers" class="hover:bg-slate-50/30 transition">
+                    <td class="py-3">
+                      <div class="font-bold text-slate-800 text-sm">{{ user.username }}</div>
+                      <div class="text-xs text-slate-400">{{ user.email }}</div>
+                    </td>
+                    <td class="py-3">
+                      <span class="px-2 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold uppercase">{{ user.role?.name }}</span>
+                    </td>
+                    <td class="py-3">
+                      <div class="flex items-center gap-2">
+                        <span class="font-medium text-slate-700 text-sm">{{ user.mobile_number || 'N/A' }}</span>
+                        <span *ngIf="user.mobile_number" class="inline-flex items-center gap-1 ml-1">
+                          <a [href]="'tel:' + user.mobile_number" class="px-1.5 py-0.5 bg-slate-100 border border-slate-200 text-blue-500 rounded text-xs font-bold transition hover:bg-slate-200 hover:scale-105" title="Call">📞</a>
+                          <a [href]="'https://wa.me/' + user.mobile_number.replace('+', '').replace(' ', '')" target="_blank" class="px-1.5 py-0.5 bg-slate-100 border border-slate-200 text-green-500 rounded text-xs font-bold transition hover:bg-slate-200 hover:scale-105" title="WhatsApp">💬</a>
+                        </span>
+                      </div>
+                    </td>
+                    <td class="py-3">
+                      <span [class]="user.is_active ? 'px-2 py-1 bg-green-100 text-green-800 rounded-lg text-xs font-semibold' : 'px-2 py-1 bg-red-100 text-red-800 rounded-lg text-xs font-semibold'">
+                        {{ user.is_active ? 'Active' : 'Inactive' }}
                       </span>
-                    </div>
-                  </td>
-                  <td class="py-2">
-                    <span [class]="user.is_active ? 'px-1.5 py-0.5 bg-green-100 text-green-800 rounded text-[9px] font-semibold' : 'px-1.5 py-0.5 bg-red-100 text-red-800 rounded text-[9px] font-semibold'">
-                      {{ user.is_active ? 'Active' : 'Inactive' }}
-                    </span>
-                  </td>
-                  <td class="py-2">
-                    <span class="font-medium text-slate-700">
-                      {{ user.role?.name === 'DOCTOR' ? (user.doctor?.specialization || 'General Practice') : 
-                         (user.role?.name === 'RECEPTIONIST' ? (user.specialization || 'Front Desk') : 
-                         (user.role?.name === 'LAB_AC' ? (user.lab_ac?.qualification || 'Assistant') : 'N/A')) }}
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                    </td>
+                    <td class="py-3">
+                      <span class="font-medium text-slate-700 text-sm">
+                        {{ user.role?.name === 'DOCTOR' ? (user.doctor?.specialization || 'General Practice') : 
+                           (user.role?.name === 'RECEPTIONIST' ? (user.specialization || 'Front Desk') : 
+                           (user.role?.name === 'LAB_AC' ? (user.lab_ac?.qualification || 'Assistant') : 'N/A')) }}
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+
+          <!-- Doctors Directory Panel (Card Full of Doctors & Interactive 9x4 Schedule Grid) -->
+          <div class="bg-white border border-slate-200 p-3 rounded-xl shadow-sm space-y-3">
+            
+            <!-- Default Header (when no doctor is selected) -->
+            <div *ngIf="!selectedDoctorForSchedule" class="flex items-center justify-between border-b border-slate-100 pb-2">
+              <div>
+                <h2 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <span>🩺</span> Doctors Directory
+                </h2>
+                <p class="text-[9px] text-slate-400">Click a doctor to inspect their daily 9x4 schedule grid</p>
+              </div>
+              <span class="px-2 py-0.5 bg-teal-50 text-teal-700 text-[9px] font-bold rounded-full border border-teal-100">
+                Total Doctors: {{ activeDoctors.length }}
+              </span>
+            </div>
+
+            <!-- Schedule Header (when doctor is selected) -->
+            <div *ngIf="selectedDoctorForSchedule" class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-2 gap-2">
+              <div class="flex items-center gap-2">
+                <button 
+                  (click)="clearSelectedDoctorSchedule()" 
+                  class="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-lg text-[9px] transition cursor-pointer flex items-center gap-1"
+                >
+                  <span>←</span> Back
+                </button>
+                <div>
+                  <h2 class="text-xs font-bold text-slate-900 flex items-center gap-1">
+                    <span>🩺</span> Schedule: Dr. {{ selectedDoctorForSchedule.username }}
+                  </h2>
+                  <p class="text-[9px] text-teal-700 font-semibold">
+                    {{ selectedDoctorForSchedule.doctor?.specialization || selectedDoctorForSchedule.specialization || 'General Physician' }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Date Filter Picker -->
+              <div class="flex items-center gap-1.5 self-end sm:self-auto">
+                <label class="text-[9px] font-bold text-slate-400 uppercase">Day:</label>
+                <input 
+                  type="date" 
+                  [(ngModel)]="selectedScheduleDate" 
+                  [min]="minScheduleDate"
+                  [max]="maxScheduleDate"
+                  class="px-2 py-0.5 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none font-semibold text-slate-700 cursor-pointer focus:border-teal-500"
+                />
+              </div>
+            </div>
+
+            <!-- VIEW 1: List of Doctor Profile Cards (Click doctor to open schedule) -->
+            <div *ngIf="!selectedDoctorForSchedule" class="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+              <div 
+                *ngFor="let doc of activeDoctors" 
+                (click)="selectDoctorSchedule(doc)"
+                class="p-2.5 bg-slate-50/70 hover:bg-slate-50 border border-slate-200/80 hover:border-teal-400 rounded-xl transition cursor-pointer space-y-1.5 group shadow-xs hover:shadow-sm"
+              >
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <div class="w-7 h-7 bg-teal-600 group-hover:bg-teal-700 text-white font-bold rounded-lg flex items-center justify-center text-[10px] shadow-sm transition">
+                      🩺
+                    </div>
+                    <div>
+                      <div class="font-bold text-slate-900 text-[11px] group-hover:text-teal-700 transition">
+                        Dr. {{ doc.username }}
+                      </div>
+                      <div class="text-[9px] text-teal-700 font-semibold">
+                        {{ doc.doctor?.specialization || doc.specialization || 'General Physician' }}
+                      </div>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span 
+                      [class]="doc.is_active ? 'px-2 py-0.5 bg-green-50 text-green-700 border border-green-200 rounded text-[9px] font-bold' : 'px-2 py-0.5 bg-slate-100 text-slate-500 border border-slate-200 rounded text-[9px] font-bold'"
+                    >
+                      {{ doc.is_active ? 'Active' : 'Inactive' }}
+                    </span>
+                    <span class="text-[9px] text-teal-600 font-bold opacity-0 group-hover:opacity-100 transition">
+                      📅 View Grid →
+                    </span>
+                  </div>
+                </div>
+
+                <div class="flex items-center justify-between text-[9px] text-slate-500 pt-1 border-t border-slate-100">
+                  <span class="flex items-center gap-1">
+                    <span>📧</span> {{ doc.email || 'N/A' }}
+                  </span>
+                  <span class="flex items-center gap-1 font-medium text-slate-600">
+                    <span>📱</span> {{ doc.mobile_number || 'N/A' }}
+                  </span>
+                </div>
+              </div>
+
+              <div *ngIf="activeDoctors.length === 0" class="text-center py-8 text-slate-400 italic text-[10px]">
+                No registered doctor profiles available.
+              </div>
+            </div>
+
+            <!-- VIEW 2: 9 Rows x 4 Columns Daily Schedule Matrix Grid -->
+            <div *ngIf="selectedDoctorForSchedule" class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+              <div class="overflow-x-auto">
+                <table class="w-full text-center border-collapse text-[10px] font-sans">
+                  <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[9px] tracking-wider">
+                      <th class="py-1.5 px-2 text-left w-16 bg-slate-100/70">Hours (10-6)</th>
+                      <th class="py-1.5 px-1 font-bold text-teal-700 w-1/4">:00</th>
+                      <th class="py-1.5 px-1 font-bold text-teal-700 w-1/4">:15</th>
+                      <th class="py-1.5 px-1 font-bold text-teal-700 w-1/4">:30</th>
+                      <th class="py-1.5 px-1 font-bold text-teal-700 w-1/4">:45</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <!-- 9 Rows (10 AM to 6 PM) -->
+                    <tr *ngFor="let hour of scheduleHours" class="hover:bg-slate-50/50">
+                      <!-- Row Hour Header -->
+                      <td class="py-1.5 px-2 text-left font-bold text-slate-700 text-[10px] whitespace-nowrap bg-slate-50/80 border-r border-slate-100">
+                        {{ displayHour(hour) }}
+                      </td>
+
+                      <!-- 4 Minute Columns (:00, :15, :30, :45) -->
+                      <td *ngFor="let min of scheduleMinutes" class="p-1">
+                        
+                        <!-- Break Time Cell (1:30 PM - 2:30 PM) -> Sky Blue Styling -->
+                        <div 
+                          *ngIf="isBreakSlot(hour, min)"
+                          class="py-1 px-1 bg-sky-100 text-sky-800 border border-sky-300 rounded-lg text-[9px] font-extrabold shadow-xs flex items-center justify-center gap-1 cursor-not-allowed select-none"
+                          title="Doctor Recess / Lunch Break (1:30 PM - 2:30 PM)"
+                        >
+                          <span>Break</span>
+                        </div>
+
+                        <!-- Booked / Scheduled Appointment Cell (if not break) -->
+                        <div 
+                          *ngIf="!isBreakSlot(hour, min) && getAppointmentForSlot(hour, min) as slotAppt"
+                          [ngClass]="{
+                            'bg-amber-50 text-amber-800 border-amber-200': slotAppt.status === 'Doctor Completed',
+                            'bg-emerald-50 text-emerald-800 border-emerald-200': slotAppt.status === 'Scheduled' || slotAppt.status === 'Finalized' || slotAppt.status === 'Completed',
+                            'bg-sky-50 text-sky-800 border-sky-200': slotAppt.status === 'Requested'
+                          }"
+                          class="p-1 rounded-lg border text-[9px] font-bold shadow-xs truncate cursor-pointer transition hover:scale-105"
+                          [title]="'Patient: ' + slotAppt.patientName + ' | Status: ' + slotAppt.status + ' | Time: ' + slotAppt.time"
+                        >
+                          <div class="truncate text-[9px] font-extrabold">{{ slotAppt.patientName }}</div>
+                          <div class="text-[8px] opacity-80 font-bold truncate">{{ slotAppt.status }}</div>
+                        </div>
+
+                        <!-- Available / Empty Slot Cell (if not break and not booked) -->
+                        <div 
+                          *ngIf="!isBreakSlot(hour, min) && !getAppointmentForSlot(hour, min)" 
+                          class="py-1 px-1.5 bg-slate-50/80 hover:bg-teal-50 text-slate-400 hover:text-teal-700 border border-slate-200/60 hover:border-teal-300 rounded-lg text-[9px] font-semibold transition cursor-pointer flex items-center justify-center"
+                          [title]="'Available Slot at ' + hour.split(':')[0] + ':' + min"
+                        >
+                          {{ min }}
+                        </div>
+
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
 
 
 
@@ -771,9 +940,9 @@
                         Cancel
                       </button>
                     </div>
-                    <div *ngIf="apt.status !== 'Requested'" class="flex items-center gap-2">
-                      <span class="text-slate-500 font-semibold">Assigned: Dr. {{ apt.doctorName }}</span>
-                      <span class="px-1.5 py-0.5 bg-green-50 text-green-700 text-[9px] font-bold rounded border border-green-200/50">
+                    <div *ngIf="apt.status !== 'Requested'" class="flex items-center justify-between gap-3 w-full pr-2">
+                      <span class="text-slate-600 font-medium text-[10px] truncate">Assigned: Dr. {{ apt.doctorName }}</span>
+                      <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[9px] font-bold rounded-md border border-emerald-200/80 whitespace-nowrap shrink-0 inline-flex items-center">
                         {{ apt.status }}
                       </span>
                     </div>
@@ -844,11 +1013,14 @@
 
       </div> <!-- Closes the flex-1 container -->
     </div>
+  </div>
+
+
 
     <!-- ========================================== -->
     <!-- 4. DOCTOR VIEW -->
     <!-- ========================================== -->
-    <div *ngIf="activePerspective === 'DOCTOR'" class="max-w-4xl mx-auto w-full text-xs flex gap-3">
+    <div *ngIf="activePerspective === 'DOCTOR'" class="w-full text-xs flex gap-3">
       <!-- Left Settings Bar -->
       <div [class]="sidebarOpen ? 'w-44' : 'w-12'" class="bg-white border border-slate-200 rounded-2xl p-2 shadow-sm transition-all duration-300 flex flex-col items-stretch self-start font-sans sticky top-4">
         <button (click)="sidebarOpen = !sidebarOpen" class="p-2 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-sm font-bold transition flex items-center justify-center cursor-pointer mb-2" [title]="sidebarOpen ? 'Collapse Menu' : 'Expand Menu'">
@@ -857,6 +1029,10 @@
         <div *ngIf="sidebarOpen" class="px-2 pb-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 mb-2">
           Settings
         </div>
+        <button (click)="showScheduleMatrixModal = true" class="w-full p-2 rounded-xl hover:bg-slate-50 text-teal-600 hover:text-teal-700 transition flex items-center justify-start gap-2 cursor-pointer mb-1" [title]="'Schedule Matrix'">
+          <span class="text-sm">📅</span>
+          <span *ngIf="sidebarOpen" class="font-bold text-xs ml-2">Schedule Matrix</span>
+        </button>
         <button (click)="openSelfProfile()" class="w-full p-2 rounded-xl hover:bg-slate-50 text-slate-700 hover:text-slate-900 transition flex items-center justify-start gap-2 cursor-pointer" [title]="'Profile Settings'">
           <span class="text-sm">👤</span>
           <span *ngIf="sidebarOpen" class="font-bold text-xs ml-2">Profile Settings</span>
@@ -870,17 +1046,91 @@
         <!-- Consultations Queue & Prescription Form -->
         <div class="space-y-3">
           
-          <!-- Appointment Queue -->
+          <!-- Appointment Queue (9x4 Daily Schedule Matrix Grid) -->
           <div class="bg-white border border-slate-200 p-3.5 rounded-xl shadow-sm space-y-3">
-            <h2 class="text-sm font-bold text-slate-900">Today's Schedule</h2>
-            <p class="text-[10px] text-slate-400">Patient queue assigned to you</p>
-            <div class="space-y-2">
-              <div *ngFor="let apt of appointmentsList" class="p-2.5 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
-                <div>
-                  <div class="font-bold text-slate-800 text-[11px]">{{ apt.patientName }}</div>
-                  <div class="text-[10px] text-slate-400">Scheduled: {{ apt.time }}</div>
-                </div>
-                <button (click)="newPrescription.patientName = apt.patientName" class="text-[10px] px-2 py-0.5 bg-teal-600 hover:bg-teal-700 text-white rounded font-bold transition">Consult</button>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-2 gap-2">
+              <div>
+                <h2 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                  <span>📅</span> Today's Schedule Matrix
+                </h2>
+                <p class="text-[9px] text-slate-400">9-row (10-6) by 4-column (:00, :15, :30, :45) patient queue</p>
+              </div>
+
+              <!-- Day Filter Date Picker (Today to Next Week) -->
+              <div class="flex items-center gap-1.5 self-end sm:self-auto">
+                <label class="text-[9px] font-bold text-slate-400 uppercase">Day:</label>
+                <input 
+                  type="date" 
+                  [(ngModel)]="selectedScheduleDate" 
+                  [min]="minScheduleDate"
+                  [max]="maxScheduleDate"
+                  class="px-2 py-0.5 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none font-semibold text-slate-700 cursor-pointer focus:border-teal-500"
+                />
+              </div>
+            </div>
+
+            <!-- 9 Rows x 4 Columns Matrix Table -->
+            <div class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+              <div class="overflow-x-auto">
+                <table class="w-full text-center border-collapse text-[10px] font-sans">
+                  <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[9px] tracking-wider">
+                      <th class="py-1.5 px-2 text-left w-16 bg-slate-100/70">Hours (10-6)</th>
+                      <th class="py-1.5 px-1 font-bold text-teal-700 w-1/4">:00</th>
+                      <th class="py-1.5 px-1 font-bold text-teal-700 w-1/4">:15</th>
+                      <th class="py-1.5 px-1 font-bold text-teal-700 w-1/4">:30</th>
+                      <th class="py-1.5 px-1 font-bold text-teal-700 w-1/4">:45</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <!-- 9 Rows (10 AM to 6 PM) -->
+                    <tr *ngFor="let hour of scheduleHours" class="hover:bg-slate-50/50">
+                      <!-- Row Hour Header -->
+                      <td class="py-1.5 px-2 text-left font-bold text-slate-700 text-[10px] whitespace-nowrap bg-slate-50/80 border-r border-slate-100">
+                        {{ displayHour(hour) }}
+                      </td>
+
+                      <!-- 4 Minute Columns (:00, :15, :30, :45) -->
+                      <td *ngFor="let min of scheduleMinutes" class="p-1">
+                        
+                        <!-- Break Time Cell (1:30 PM - 2:30 PM) -> Sky Blue Styling -->
+                        <div 
+                          *ngIf="isBreakSlot(hour, min)"
+                          class="py-1 px-1 bg-sky-100 text-sky-800 border border-sky-300 rounded-lg text-[9px] font-extrabold shadow-xs flex items-center justify-center gap-1 cursor-not-allowed select-none"
+                          title="Doctor Recess / Lunch Break (1:30 PM - 2:30 PM)"
+                        >
+                          <span>Break</span>
+                        </div>
+
+                        <!-- Booked / Scheduled Appointment Cell -> Click to Consult & Write Rx -->
+                        <div 
+                          *ngIf="!isBreakSlot(hour, min) && getAppointmentForSlot(hour, min) as slotAppt"
+                          (click)="newPrescription.patientName = slotAppt.patientName"
+                          [ngClass]="{
+                            'bg-amber-50 text-amber-800 border-amber-200': slotAppt.status === 'Doctor Completed',
+                            'bg-emerald-50 text-emerald-800 border-emerald-200': slotAppt.status === 'Scheduled' || slotAppt.status === 'Finalized' || slotAppt.status === 'Completed',
+                            'bg-sky-50 text-sky-800 border-sky-200': slotAppt.status === 'Requested'
+                          }"
+                          class="p-1 rounded-lg border text-[9px] font-bold shadow-xs truncate cursor-pointer transition hover:scale-105"
+                          [title]="'Click to Consult ' + slotAppt.patientName + ' | Status: ' + slotAppt.status"
+                        >
+                          <div class="truncate text-[9px] font-extrabold">{{ slotAppt.patientName }}</div>
+                          <div class="text-[8px] opacity-80 font-bold truncate">{{ slotAppt.status }}</div>
+                        </div>
+
+                        <!-- Available / Empty Slot Cell -->
+                        <div 
+                          *ngIf="!isBreakSlot(hour, min) && !getAppointmentForSlot(hour, min)" 
+                          class="py-1 px-1.5 bg-slate-50/80 hover:bg-teal-50 text-slate-400 hover:text-teal-700 border border-slate-200/60 hover:border-teal-300 rounded-lg text-[9px] font-semibold transition cursor-pointer flex items-center justify-center"
+                          [title]="'Available Slot at ' + hour.split(':')[0] + ':' + min"
+                        >
+                          {{ min }}
+                        </div>
+
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -932,15 +1182,14 @@
           </div>
 
         </div>
-
       </div>
-      </div> <!-- Closes the flex-1 container -->
     </div>
+  </div>
 
   <!-- ========================================== -->
   <!-- 5. LAB AC VIEW -->
   <!-- ========================================== -->
-  <div *ngIf="activePerspective === 'LAB_AC'" class="max-w-4xl mx-auto w-full text-xs flex gap-3">
+  <div *ngIf="activePerspective === 'LAB_AC'" class="w-full text-xs flex gap-3">
     <!-- Left Settings Bar (Toggle Bar) -->
     <div [class]="sidebarOpen ? 'w-44' : 'w-12'" class="bg-white border border-slate-200 rounded-2xl p-2 shadow-sm transition-all duration-300 flex flex-col items-stretch self-start font-sans sticky top-4">
       <button (click)="sidebarOpen = !sidebarOpen" class="p-2 hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-sm font-bold transition flex items-center justify-center cursor-pointer mb-2" [title]="sidebarOpen ? 'Collapse Menu' : 'Expand Menu'">
@@ -992,8 +1241,6 @@
         </div>
       </div>
     </div>
-  </div>
-
   </div>
   <!-- Confidential Doctor Details Card Modal (Super Admin only can trigger) -->
   <div *ngIf="selectedUserForDetails" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -1234,7 +1481,7 @@
               class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-purple-500 transition" />
           </div>
 
-          <div *ngIf="activePerspective !== 'ADMIN'" class="space-y-1">
+          <div *ngIf="$any(activePerspective) !== 'ADMIN'" class="space-y-1">
             <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">License Number</label>
             <input 
               type="text" 
@@ -1243,7 +1490,7 @@
               class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 outline-none focus:border-purple-500 transition" />
           </div>
 
-          <div *ngIf="activePerspective !== 'ADMIN'" class="grid grid-cols-2 gap-3">
+          <div *ngIf="$any(activePerspective) !== 'ADMIN'" class="grid grid-cols-2 gap-3">
             <div class="space-y-1">
               <label class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Consultation Fee ($)</label>
               <input 
@@ -1384,5 +1631,113 @@
         </button>
       </div>
     </div>
+
+  <!-- Dedicated Schedule Matrix Page Modal Overlay -->
+  <div *ngIf="showScheduleMatrixModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl max-w-4xl w-full mx-4 space-y-4 relative animate-fade-in font-sans max-h-[90vh] flex flex-col">
+      <button 
+        (click)="showScheduleMatrixModal = false" 
+        class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition text-lg font-bold w-8 h-8 flex items-center justify-center hover:bg-slate-100 rounded-full cursor-pointer z-10"
+      >
+        ✕
+      </button>
+      
+      <!-- Modal Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-3">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>📅</span> Doctor Appointment Schedule Matrix
+          </h2>
+          <p class="text-xs text-slate-500">9-row (10 AM to 6 PM) by 4-column (:00, :15, :30, :45) operational queue</p>
+        </div>
+
+        <!-- Controls: Doctor Select & Date Range Picker -->
+        <div class="flex items-center gap-2">
+          <!-- Doctor Picker (for Receptionist/Admin) -->
+          <select 
+            *ngIf="activePerspective !== 'DOCTOR'"
+            [(ngModel)]="selectedDoctorForSchedule" 
+            class="px-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-slate-700 cursor-pointer focus:border-teal-500"
+          >
+            <option [ngValue]="null">All Doctors</option>
+            <option *ngFor="let doc of activeDoctors" [ngValue]="doc">Dr. {{ doc.username }} ({{ doc.doctor?.specialization || 'GP' }})</option>
+          </select>
+
+          <!-- Date Picker (Today to Next Week) -->
+          <div class="flex items-center gap-1">
+            <label class="text-[10px] font-bold text-slate-400 uppercase">Date:</label>
+            <input 
+              type="date" 
+              [(ngModel)]="selectedScheduleDate" 
+              [min]="minScheduleDate"
+              [max]="maxScheduleDate"
+              class="px-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none font-semibold text-slate-700 cursor-pointer focus:border-teal-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Matrix Body Table -->
+      <div class="overflow-y-auto flex-1 pr-1 space-y-2">
+        <div class="overflow-x-auto">
+          <table class="w-full text-center border-collapse text-xs font-sans">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[10px] tracking-wider sticky top-0 z-10">
+                <th class="py-2 px-3 text-left w-20 bg-slate-100/90">Hours (10-6)</th>
+                <th class="py-2 px-1 font-bold text-teal-700 w-1/4">:00</th>
+                <th class="py-2 px-1 font-bold text-teal-700 w-1/4">:15</th>
+                <th class="py-2 px-1 font-bold text-teal-700 w-1/4">:30</th>
+                <th class="py-2 px-1 font-bold text-teal-700 w-1/4">:45</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr *ngFor="let hour of scheduleHours" class="hover:bg-slate-50/50">
+                <td class="py-2 px-3 text-left font-bold text-slate-700 text-xs whitespace-nowrap bg-slate-50/80 border-r border-slate-100">
+                  {{ displayHour(hour) }}
+                </td>
+
+                <td *ngFor="let min of scheduleMinutes" class="p-1">
+                  <!-- Break Slot -->
+                  <div 
+                    *ngIf="isBreakSlot(hour, min)"
+                    class="py-2 px-1 bg-sky-100 text-sky-800 border border-sky-300 rounded-xl text-xs font-extrabold shadow-xs flex items-center justify-center gap-1 cursor-not-allowed select-none"
+                    title="Doctor Recess / Lunch Break (1:30 PM - 2:30 PM)"
+                  >
+                    <span>Break</span>
+                  </div>
+
+                  <!-- Booked Slot -->
+                  <div 
+                    *ngIf="!isBreakSlot(hour, min) && getAppointmentForSlot(hour, min) as slotAppt"
+                    (click)="newPrescription.patientName = slotAppt.patientName; showScheduleMatrixModal = false"
+                    [ngClass]="{
+                      'bg-amber-50 text-amber-800 border-amber-200': slotAppt.status === 'Doctor Completed',
+                      'bg-emerald-50 text-emerald-800 border-emerald-200': slotAppt.status === 'Scheduled' || slotAppt.status === 'Finalized' || slotAppt.status === 'Completed',
+                      'bg-sky-50 text-sky-800 border-sky-200': slotAppt.status === 'Requested'
+                    }"
+                    class="p-1.5 rounded-xl border text-xs font-bold shadow-xs truncate cursor-pointer transition hover:scale-105"
+                    [title]="'Click to Consult ' + slotAppt.patientName + ' | Status: ' + slotAppt.status"
+                  >
+                    <div class="truncate text-xs font-black">{{ slotAppt.patientName }}</div>
+                    <div class="text-[9px] opacity-80 font-bold truncate">{{ slotAppt.status }}</div>
+                  </div>
+
+                  <!-- Available Slot -->
+                  <div 
+                    *ngIf="!isBreakSlot(hour, min) && !getAppointmentForSlot(hour, min)" 
+                    class="py-2 px-2 bg-slate-50/80 hover:bg-teal-50 text-slate-400 hover:text-teal-700 border border-slate-200/60 hover:border-teal-300 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center justify-center"
+                    [title]="'Available Slot at ' + hour.split(':')[0] + ':' + min"
+                  >
+                    {{ min }}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
   </div>
+</div>
+</div>
 </ion-content>

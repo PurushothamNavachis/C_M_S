@@ -50,6 +50,7 @@ class UserRegister(UserBase):
     password: str = Field(..., min_length=6, max_length=128)
     password_confirm: str = Field(..., min_length=6, max_length=128)
     blood_group: str | None = None
+    gender: str | None = None
 
     @model_validator(mode='after')
     def verify_passwords(self) -> 'UserRegister':

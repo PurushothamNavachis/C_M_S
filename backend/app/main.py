@@ -17,10 +17,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+import os
+from fastapi.staticfiles import StaticFiles
+
 # Include API Routers
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(clinical.router, prefix="/api/v1")
+
+reports_dir = r"C:\Users\milaa\Desktop\Navachis\C_M_S\pdf\generated_reports"
+if os.path.exists(reports_dir):
+    app.mount("/reports", StaticFiles(directory=reports_dir), name="reports")
 
 @app.get("/")
 async def root():

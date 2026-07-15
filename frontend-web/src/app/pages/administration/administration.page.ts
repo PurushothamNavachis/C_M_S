@@ -9,8 +9,7 @@ import { ApiService } from '../../services/api';
   standalone: false,
 })
 export class AdministrationPage implements OnInit, OnDestroy {
-  // Current active role perspective for testing
-  activePerspective: 'SUPER_ADMIN' | 'ADMIN' | 'RECEPTIONIST' | 'DOCTOR' | 'LAB_AC' = 'SUPER_ADMIN';
+  activePerspective: string = 'SUPER_ADMIN';
 
   // Clock properties
   currentTime = '';
@@ -27,6 +26,7 @@ export class AdministrationPage implements OnInit, OnDestroy {
   sidebarOpen = false;
   showSelfProfileModal = false;
   showRegisterPatientModal = false;
+  showScheduleMatrixModal = false;
   selfProfileForm = { username: '', email: '', mobile_number: '', password: '' };
 
   // Directory editing
@@ -44,9 +44,59 @@ export class AdministrationPage implements OnInit, OnDestroy {
     experience_years: 0
   };
 
+  // Doctor Schedule Matrix Grid Properties
+  minScheduleDate: string = new Date().toISOString().split('T')[0];
+  maxScheduleDate: string = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    return d.toISOString().split('T')[0];
+  })();
+  selectedDoctorForSchedule: any = null;
+  selectedScheduleDate: string = new Date().toISOString().split('T')[0];
+  scheduleHours = ['10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+  scheduleMinutes = ['00', '15', '30', '45'];
+
+  displayHour(hour24: string): string {
+    const h = parseInt(hour24.split(':')[0], 10);
+    if (h === 12) return '12 PM';
+    if (h > 12) return `${h - 12} PM`;
+    return `${h} AM`;
+  }
+
+  isBreakSlot(hour24: string, min: string): boolean {
+    const timeFormatted = `${hour24.split(':')[0]}:${min}`;
+    return timeFormatted === '13:30' || timeFormatted === '13:45' || 
+           timeFormatted === '14:00' || timeFormatted === '14:15';
+  }
+
+  selectDoctorSchedule(doc: any) {
+    this.selectedDoctorForSchedule = doc;
+  }
+
+  clearSelectedDoctorSchedule() {
+    this.selectedDoctorForSchedule = null;
+  }
+
+  getAppointmentForSlot(hour24: string, min: string) {
+    const hourNum = hour24.split(':')[0];
+    const targetTime = `${hourNum}:${min}`;
+    const docId = this.selectedDoctorForSchedule ? (this.selectedDoctorForSchedule.doctor?.id || this.selectedDoctorForSchedule.id) : null;
+    const docName = this.selectedDoctorForSchedule ? (this.selectedDoctorForSchedule.username || '').toLowerCase() : null;
+
+    return this.appointmentsList.find(a => {
+      const matchDoc = !docName || 
+                       (a.doctor_id && a.doctor_id === docId) ||
+                       (a.doctorName && a.doctorName.toLowerCase().includes(docName));
+      const matchDate = !this.selectedScheduleDate || a.date === this.selectedScheduleDate;
+      const apptTime = a.time ? a.time.trim() : '';
+      const matchTime = apptTime.includes(targetTime) || apptTime.startsWith(targetTime);
+      return matchDoc && matchDate && matchTime;
+    });
+  }
+
   get filteredUsers() {
     return this.usersList.filter(user => {
-      if (user.role?.name === 'PATIENT') {
+      if (user.role?.name === 'PATIENT' || user.role?.name === 'RECEPTIONIST') {
         return false;
       }
       if (this.activePerspective === 'RECEPTIONIST') {
@@ -80,6 +130,8 @@ export class AdministrationPage implements OnInit, OnDestroy {
         return { name: 'doctor', role: 'Doctor', colorClass: 'bg-teal-100 text-teal-700 border-teal-200' };
       case 'LAB_AC':
         return { name: 'labassistant', role: 'Lab Assistant (Lab AC)', colorClass: 'bg-emerald-100 text-emerald-700 border-emerald-200' };
+      default:
+        return { name: 'superadmin', role: 'Super Admin', colorClass: 'bg-purple-100 text-purple-700 border-purple-200' };
     }
   }
   registration = {
@@ -96,6 +148,7 @@ export class AdministrationPage implements OnInit, OnDestroy {
   };
 
   selectedUserForDetails: any = null;
+  showPatientDetailsModal: boolean = false;
 
   // Mock Patient / Appointment Data for Receptionist (RAC)
   patientsList: any[] = [];
@@ -421,10 +474,10 @@ export class AdministrationPage implements OnInit, OnDestroy {
 
     this.api.post('clinical/consultations', payload).subscribe({
       next: () => {
-        alert(`Prescription saved for patient ${this.newPrescription.patientName}!`);
+        alert(`Prescription submitted to receptionist for report finalization!`);
         this.prescriptionsList.push({ ...this.newPrescription });
         this.newPrescription = { patientName: '', diagnosis: '', medication: '', instructions: '' };
-        this.loadAppointments();
+        this.changePerspective('RECEPTIONIST');
       },
       error: (err: any) => {
         console.error('Save consultation failed', err);
@@ -552,6 +605,7 @@ export class AdministrationPage implements OnInit, OnDestroy {
   }
 
   showPatientDetailsPlaceholder() {
-    alert('Patients Details section: This option will display details for all patients in a future update.');
+    this.loadPatients();
+    this.showPatientDetailsModal = true;
   }
 }

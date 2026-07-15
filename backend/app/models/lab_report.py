@@ -9,6 +9,7 @@ class LabReport(Base):
     patient_id: Mapped[str] = mapped_column(String(36), ForeignKey("patients.id", ondelete="CASCADE"), nullable=False)
     test_id: Mapped[str] = mapped_column(String(36), ForeignKey("laboratory_tests.id", ondelete="RESTRICT"), nullable=False)
     result_value: Mapped[str] = mapped_column(Text, nullable=True)
+    status: Mapped[str] = mapped_column(String(50), default="PENDING", nullable=False)
     uploaded_file_url: Mapped[str] = mapped_column(String(512), nullable=True)
 
     # Relationships
