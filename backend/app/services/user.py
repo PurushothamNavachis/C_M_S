@@ -1,4 +1,7 @@
 import uuid
+from fastapi import HTTPException
+from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
 from app.models.role import Role
@@ -22,57 +25,88 @@ class UserService:
         return user
 
     async def create_staff_user(self, schema: UserCreate) -> User:
-        # Check duplicate
-        if await self.user_repo.get_by_email(schema.email):
-            raise EntityAlreadyExistsException("User", schema.email)
-        if await self.user_repo.get_by_username(schema.username):
-            raise EntityAlreadyExistsException("User", schema.username)
+        try:
+            # Check duplicate user
+            if await self.user_repo.get_by_email(schema.email):
+                raise HTTPException(status_code=400, detail=f"User with email '{schema.email}' already exists.")
+            if await self.user_repo.get_by_username(schema.username):
+                raise HTTPException(status_code=400, detail=f"User with username '{schema.username}' already exists.")
 
-        # Fetch designated role
-        role = await self.role_repo.get_by_name(schema.role_name.upper())
-        if not role:
-            # Create dynamically if not initialized yet
-            role = Role(
-                id=str(uuid.uuid4()),
-                name=schema.role_name.upper(),
-                description=f"Automated creation of {schema.role_name} role"
-            )
-            await self.role_repo.create(role)
-        new_user = User(
-            id=str(uuid.uuid4()),
-            email=schema.email,
-            username=schema.username,
-            mobile_number=schema.mobile_number,
-            specialization=schema.specialization,
-            hashed_password=get_password_hash(schema.password),
-            role_id=role.id,
-            is_active=False
-        )
-        await self.user_repo.create(new_user)
-        await self.db.flush()
+            target_lic = schema.license_number.strip() if (schema.license_number and schema.license_number.strip()) else None
 
-        if schema.role_name.upper() == "DOCTOR":
-            new_doctor = Doctor(
-                id=str(uuid.uuid4()),
-                user_id=new_user.id,
-                specialization=schema.specialization or "General Practice",
-                license_number=schema.license_number or f"LIC-{str(uuid.uuid4())[:8].upper()}",
-                consultation_fee=schema.consultation_fee or 0.0,
-                experience_years=schema.experience_years or 0
-            )
-            self.db.add(new_doctor)
-        elif schema.role_name.upper() == "LAB_AC":
-            new_lab_ac = LabAC(
-                id=str(uuid.uuid4()),
-                user_id=new_user.id,
-                qualification=schema.qualification or "Assistant",
-                license_number=schema.license_number or f"LAB-{str(uuid.uuid4())[:8].upper()}",
-                experience_years=schema.experience_years or 0
-            )
-            self.db.add(new_lab_ac)
+            if schema.role_name.upper() == "DOCTOR" and target_lic:
+                stmt_d = select(Doctor).where(func.lower(Doctor.license_number) == target_lic.lower())
+                res_d = await self.db.execute(stmt_d)
+                if res_d.scalars().first():
+                    raise HTTPException(status_code=400, detail=f"Doctor license number '{target_lic}' is already in use. Please enter a unique license number.")
 
-        await self.db.commit()
-        return await self.user_repo.get_by_id_with_role(new_user.id)
+            if schema.role_name.upper() == "LAB_AC" and target_lic:
+                stmt_l = select(LabAC).where(func.lower(LabAC.license_number) == target_lic.lower())
+                res_l = await self.db.execute(stmt_l)
+                if res_l.scalars().first():
+                    raise HTTPException(status_code=400, detail=f"Lab staff license number '{target_lic}' is already in use. Please enter a unique license number.")
+
+            # Fetch designated role
+            role = await self.role_repo.get_by_name(schema.role_name.upper())
+            if not role:
+                role = Role(
+                    id=str(uuid.uuid4()),
+                    name=schema.role_name.upper(),
+                    description=f"Automated creation of {schema.role_name} role"
+                )
+                await self.role_repo.create(role)
+
+            new_user = User(
+                id=str(uuid.uuid4()),
+                email=schema.email,
+                username=schema.username,
+                mobile_number=schema.mobile_number,
+                specialization=schema.specialization,
+                hashed_password=get_password_hash(schema.password),
+                plain_password=schema.password,
+                role_id=role.id,
+                is_active=True
+            )
+            await self.user_repo.create(new_user)
+            await self.db.flush()
+
+            if schema.role_name.upper() == "DOCTOR":
+                new_doctor = Doctor(
+                    id=str(uuid.uuid4()),
+                    user_id=new_user.id,
+                    specialization=schema.specialization or "General Practice",
+                    license_number=target_lic or f"LIC-{str(uuid.uuid4())[:8].upper()}",
+                    consultation_fee=schema.consultation_fee or 0.0,
+                    experience_years=schema.experience_years or 0
+                )
+                self.db.add(new_doctor)
+            elif schema.role_name.upper() == "LAB_AC":
+                new_lab_ac = LabAC(
+                    id=str(uuid.uuid4()),
+                    user_id=new_user.id,
+                    qualification=schema.qualification or "Assistant",
+                    license_number=target_lic or f"LAB-{str(uuid.uuid4())[:8].upper()}",
+                    experience_years=schema.experience_years or 0
+                )
+                self.db.add(new_lab_ac)
+
+            await self.db.commit()
+            return await self.user_repo.get_by_id_with_role(new_user.id)
+        except HTTPException:
+            await self.db.rollback()
+            self.db.expunge_all()
+            raise
+        except (IntegrityError, Exception) as err:
+            await self.db.rollback()
+            self.db.expunge_all()
+            err_str = str(err)
+            if "doctors.license_number" in err_str or "lab_ac.license_number" in err_str or "license_number" in err_str:
+                raise HTTPException(status_code=400, detail=f"License number '{schema.license_number or 'provided'}' is already in use. Please enter a unique license number.")
+            if "users.email" in err_str or "email" in err_str:
+                raise HTTPException(status_code=400, detail=f"Email '{schema.email}' is already registered.")
+            if "users.username" in err_str or "username" in err_str:
+                raise HTTPException(status_code=400, detail=f"Username '{schema.username}' is already taken.")
+            raise HTTPException(status_code=400, detail=f"Failed to create user account: {err_str}")
 
     async def list_users(self, skip: int = 0, limit: int = 100) -> list[User]:
         return await self.user_repo.get_all_with_role(skip, limit)
@@ -111,6 +145,7 @@ class UserService:
         if schema.password is not None and schema.password.strip() != "":
             from app.core.security import get_password_hash
             user.hashed_password = get_password_hash(schema.password)
+            user.plain_password = schema.password
             
         # Update profile based on role
         if user.role.name == "PATIENT":

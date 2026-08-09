@@ -1,16 +1,16 @@
 <ion-app>
   <ion-header *ngIf="showHeader" class="ion-no-border sticky top-0 z-50">
-    <header class="bg-white/30 backdrop-blur-xl text-slate-800 flex items-center justify-between px-6 border-b border-white/20 relative shadow-sm h-12 overflow-visible z-50">
-      <div class="flex items-center space-x-3 cursor-pointer h-full" routerLink="/home">
-        <img src="assets/logo.png" class="h-28 w-auto object-contain z-50 transform translate-y-[8px]" alt="Abijith Clinic Logo">
-        <span class="font-extrabold text-xl tracking-wide bg-gradient-to-r from-green-600 to-teal-600 bg-clip-text text-transparent">Abijith Clinic</span>
+    <header class="bg-[#e4dcf7]/85 backdrop-blur-xl text-slate-800 flex items-center justify-between px-3 md:px-6 border-b border-white/40 relative shadow-sm h-14 overflow-visible z-50">
+      <div class="flex items-center space-x-2 md:space-x-3 cursor-pointer h-full" routerLink="/home">
+        <img src="assets/logo.png" class="h-20 md:h-28 w-auto object-contain z-50 transform translate-y-[4px] md:translate-y-[8px]" alt="Abijith Clinic Logo">
+        <span class="font-extrabold text-base md:text-xl tracking-wide text-slate-900">Abijith Clinic</span>
       </div>
 
       <!-- Navigation Links targeting main section anchor positions with smooth scroll -->
       <nav class="hidden md:flex space-x-6 text-sm font-bold tracking-wider text-slate-600">
-        <a (click)="navigateToSection('about-section')" class="hover:text-green-700 cursor-pointer transition">About Abijith Clinic</a>
-        <a (click)="navigateToSection('services-section')" class="hover:text-green-700 cursor-pointer transition">Clinical Services</a>
-        <a (click)="navigateToSection('contact-section')" class="hover:text-green-700 cursor-pointer transition">Contact & Support</a>
+        <a (click)="navigateToSection('about-section')" class="hover:text-blue-600 cursor-pointer transition">About Abijith Clinic</a>
+        <a (click)="navigateToSection('services-section')" class="hover:text-blue-600 cursor-pointer transition">Clinical Services</a>
+        <a (click)="navigateToSection('contact-section')" class="hover:text-blue-600 cursor-pointer transition">Contact & Support</a>
       </nav>
     </header>
   </ion-header>

@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import auth, users, clinical
+import os
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(
     title="Clinic Management System (CMS) API",
@@ -8,7 +10,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS middleware config
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,17 +18,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-import os
-from fastapi.staticfiles import StaticFiles
-
 # Include API Routers
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(users.router, prefix="/api/v1")
 app.include_router(clinical.router, prefix="/api/v1")
 
 reports_dir = r"C:\Users\milaa\Desktop\Navachis\C_M_S\pdf\generated_reports"
-if os.path.exists(reports_dir):
-    app.mount("/reports", StaticFiles(directory=reports_dir), name="reports")
+os.makedirs(reports_dir, exist_ok=True)
+app.mount("/reports", StaticFiles(directory=reports_dir), name="reports")
 
 @app.get("/")
 async def root():

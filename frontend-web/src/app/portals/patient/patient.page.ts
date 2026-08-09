@@ -15,7 +15,7 @@ export class PatientPage implements OnInit {
   errorMessage = '';
   successMessage = '';
   currentUser: any = null;
-  activeTab: 'profile' | 'appointments' | 'prescriptions' | 'billing' = 'appointments';
+  activeTab: 'profile' | 'appointments' | 'prescriptions' | 'billing' | 'bookings' = 'appointments';
   sidebarOpen = true;
 
   availableDates: { fullDate: string; dayName: string; dateNum: string; monthName: string }[] = [];
@@ -48,6 +48,7 @@ export class PatientPage implements OnInit {
     mobile_number: '',
     blood_group: '',
     gender: '',
+    age: '',
     password: '',
     password_confirm: ''
   };
@@ -86,8 +87,23 @@ export class PatientPage implements OnInit {
   patientLabReports: any[] = [];
   reportsLoading: boolean = false;
 
+  myBookingsList: any[] = [];
+  bookingsLoading: boolean = false;
+  showBookingModal: boolean = false;
+  selectedBookingForModal: any = null;
+
+  openBookingModal(bk: any) {
+    this.selectedBookingForModal = bk;
+    this.showBookingModal = true;
+  }
+
+  closeBookingModal() {
+    this.showBookingModal = false;
+    this.selectedBookingForModal = null;
+  }
+
   checkAuth() {
-    const token = localStorage.getItem('access_token');
+    const token = sessionStorage.getItem('access_token');
     if (!token) {
       this.isLoggedIn = false;
       this.currentUser = null;
@@ -119,16 +135,16 @@ export class PatientPage implements OnInit {
           this.isLoggedIn = false;
           this.currentUser = null;
           this.errorMessage = 'Access Denied: This portal is reserved for patients.';
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
+          sessionStorage.removeItem('access_token');
+          sessionStorage.removeItem('refresh_token');
         }
       },
       error: () => {
         this.loading = false;
         this.isLoggedIn = false;
         this.currentUser = null;
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
+        sessionStorage.removeItem('access_token');
+        sessionStorage.removeItem('refresh_token');
       }
     });
   }
@@ -159,8 +175,8 @@ export class PatientPage implements OnInit {
     this.loading = true;
     this.api.post('auth/login', this.loginData).subscribe({
       next: (response) => {
-        localStorage.setItem('access_token', response.access_token);
-        localStorage.setItem('refresh_token', response.refresh_token);
+        sessionStorage.setItem('access_token', response.access_token);
+        sessionStorage.setItem('refresh_token', response.refresh_token);
         this.checkAuth();
       },
       error: (err) => {
@@ -186,8 +202,8 @@ export class PatientPage implements OnInit {
           password: this.signupData.password
         }).subscribe({
           next: (response) => {
-            localStorage.setItem('access_token', response.access_token);
-            localStorage.setItem('refresh_token', response.refresh_token);
+            sessionStorage.setItem('access_token', response.access_token);
+            sessionStorage.setItem('refresh_token', response.refresh_token);
             this.checkAuth();
             alert('Registration Successful! You have been logged in.');
           },
@@ -390,7 +406,8 @@ export class PatientPage implements OnInit {
     date: '',
     timeHour: '10 AM',
     timeMinute: '00',
-    schedulingPreference: 'cancel'
+    schedulingPreference: 'cancel',
+    patientNote: ''
   };
 
   hoursList = [
@@ -524,12 +541,19 @@ export class PatientPage implements OnInit {
       return;
     }
     
+    if (!this.isLoggedIn || !sessionStorage.getItem('access_token')) {
+      this.isLoggedIn = false;
+      alert('Your session has expired or you are not logged in. Please log in to submit your consultation request.');
+      return;
+    }
+
     const payload = {
       department: this.bookingForm.department,
       symptoms: this.bookingForm.selectedSymptoms,
       date: this.bookingForm.date,
       time: timeStr,
-      preference: this.bookingForm.schedulingPreference
+      preference: this.bookingForm.schedulingPreference,
+      patient_note: this.bookingForm.patientNote || ''
     };
 
     this.api.post('clinical/patient-actions/consultation-request', payload).subscribe({
@@ -552,20 +576,28 @@ Preference: ${this.bookingForm.schedulingPreference === 'cancel' ? 'Cancel if sl
           date: this.minDate,
           timeHour: '10 AM',
           timeMinute: '00',
-          schedulingPreference: 'cancel'
+          schedulingPreference: 'cancel',
+          patientNote: ''
         };
         this.bookingSubMode = 'options';
       },
       error: (err) => {
-        console.error(err);
-        alert(err.error?.detail || 'Failed to submit consultation request.');
+        console.error('Consultation submission error:', err);
+        if (err.status === 401 || err.error?.detail === 'Could not validate credentials') {
+          this.isLoggedIn = false;
+          alert('Your session has expired or you are not logged in. Please log in again.');
+        } else {
+          const detail = err.error?.detail;
+          const msg = typeof detail === 'string' ? detail : (err.error?.message || err.message || 'Failed to submit consultation request.');
+          alert(msg);
+        }
       }
     });
   }
 
   onLogout() {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    sessionStorage.removeItem('access_token');
+    sessionStorage.removeItem('refresh_token');
     this.isLoggedIn = false;
     this.currentUser = null;
     this.errorMessage = '';

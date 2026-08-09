@@ -23,9 +23,9 @@ export class LoginPage {
     this.loading = true;
     this.api.post('auth/login', this.credentials).subscribe({
       next: (response) => {
-        // Save token to localstorage
-        localStorage.setItem('access_token', response.access_token);
-        localStorage.setItem('refresh_token', response.refresh_token);
+        // Save token to sessionStorage for strict per-tab session isolation
+        sessionStorage.setItem('access_token', response.access_token);
+        sessionStorage.setItem('refresh_token', response.refresh_token);
         
         // Fetch user profile to route properly
         this.api.get('users/me').subscribe({
@@ -47,7 +47,11 @@ export class LoginPage {
       },
       error: (err) => {
         this.loading = false;
-        this.errorMessage = err.error?.detail || 'Invalid username or password.';
+        if (err.status === 0) {
+          this.errorMessage = 'Cannot connect to the backend server. Please make sure the API is running.';
+        } else {
+          this.errorMessage = err.error?.detail || 'Invalid username or password.';
+        }
       }
     });
   }

@@ -1,83 +1,479 @@
-.toggle-label {
+/* From Uiverse.io by Smit-Prajapati - Animated Bouncing Purple Checkbox with Black Rectangle */ 
+.checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 26px;
+  height: 26px;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  border: 2px solid #000000; /* Black rectangle border */
+  position: relative;
+  transition: all 0.2s ease-in-out;
   cursor: pointer;
+  background-color: #ffffff;
+  outline: none;
   display: inline-block;
   vertical-align: middle;
-  margin-left: 4px;
-  transform: scale(0.75); /* Scaled down slightly to fit beautifully beside the badge */
-  transform-origin: left center;
+}
 
-  .toggle-container {
-    position: relative;
-    width: 70px;
-    height: 36px;
-    border-radius: 20px;
-    background: linear-gradient(90deg, #ff0000, #ff7f00);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-    transition:
-      background-color 0.6s ease-in-out,
-      box-shadow 0.4s ease;
+.checkbox::before {
+  font-family: system-ui, -apple-system, sans-serif;
+  position: absolute;
+  bottom: -4px;
+  left: 1px;
+  content: "✔";
+  font-size: 32px;
+  line-height: 1;
+  color: #7c3aed; /* Vibrant purple tick mark */
+  transform: scale(0);
+  transition: all 0.2s ease-in-out;
+  pointer-events: none;
+}
+
+.checkbox:checked {
+  border-color: #000000; /* Black border retained when checked */
+  background-color: #f5f3ff;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
+}
+
+.checkbox:checked::before {
+  animation: zoom 0.5s ease-in-out;
+  transform: scale(1);
+}
+
+@keyframes zoom {
+  0% {
+    transform: scale(0);
   }
 
-  .toggle {
-    position: absolute;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: radial-gradient(circle, #fff, #e0e0e0);
-    top: 0;
-    left: 0;
-    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+  20% {
+    transform: scale(1.5);
+  }
+
+  40% {
+    transform: scale(0.5);
+  }
+
+  50% {
+    transform: scale(1);
+  }
+
+  70% {
+    transform: scale(1.2);
+  }
+
+  90% {
+    transform: scale(0.8);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* From Uiverse.io by chase2k25 - 3D Neumorphic / Skeuomorphic Toggle Switch */ 
+.toggle-container {
+  perspective: 1000px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.toggle-container input {
+  display: none; /* Hide default checkbox */
+}
+
+.toggle-button {
+  position: relative;
+  width: 60px;
+  height: 30px;
+  background: linear-gradient(145deg, #e6e6e6, #ffffff);
+  border-radius: 20px;
+  box-shadow: 
+    5px 5px 10px rgba(0, 0, 0, 0.1),
+    -5px -5px 10px rgba(255, 255, 255, 0.7),
+    inset 0 2px 4px rgba(255, 255, 255, 0.8),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Elastic bounce */
+}
+
+.toggle-button::before {
+  content: "";
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  background: linear-gradient(145deg, #ff6b6b, #ff3b3b);
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  box-shadow: 
+    3px 3px 6px rgba(0, 0, 0, 0.2),
+    -3px -3px 6px rgba(255, 255, 255, 0.9),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.3);
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transform: translateZ(12px); /* 3D pop-out effect */
+}
+
+.toggle-button::after {
+  content: "";
+  position: absolute;
+  width: 54px;
+  height: 24px;
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.2),
+    rgba(0, 0, 0, 0.1)
+  );
+  border-radius: 18px;
+  top: 3px;
+  left: 3px;
+  transition: all 0.4s ease-in-out;
+  pointer-events: none; /* Prevent interaction with pseudo-element */
+}
+
+.toggle-container input:checked ~ .toggle-button {
+  background: linear-gradient(145deg, #c3e6cb, #d4f4dd);
+  box-shadow:
+    5px 5px 10px rgba(0, 0, 0, 0.1),
+    -5px -5px 10px rgba(255, 255, 255, 0.7),
+    inset 0 2px 4px rgba(255, 255, 255, 0.8),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.toggle-container input:checked ~ .toggle-button::before {
+  left: 32px;
+  background: linear-gradient(145deg, #2ecc71, #27ae60);
+  transform: translateZ(12px) rotate(360deg); /* Spin animation */
+}
+
+.toggle-container input:checked ~ .toggle-button::after {
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.3),
+    rgba(0, 0, 0, 0.05)
+  );
+}
+
+.toggle-button:active::before {
+  transform: translateZ(8px); /* Pressed effect */
+  box-shadow:
+    2px 2px 4px rgba(0, 0, 0, 0.2),
+    -2px -2px 4px rgba(255, 255, 255, 0.9);
+}
+
+/* Hover effect for extra interactivity */
+.toggle-button:hover {
+  box-shadow:
+    6px 6px 14px rgba(0, 0, 0, 0.15),
+    -6px -6px 14px rgba(255, 255, 255, 0.8);
+}
+
+/* Subtle animation for toggle track */
+@keyframes track-glow {
+  0% {
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  }
+  50% {
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+  }
+  100% {
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.toggle-container input:checked ~ .toggle-button::after {
+  animation: track-glow 1.5s infinite;
+}
+
+// Administration Portal Landing Page Theme Integration
+.admin-theme-wrapper {
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  background: linear-gradient(135deg, #f3e8ff 0%, #ede9fe 40%, #e9d5ff 100%) !important;
+  min-height: 100vh;
+  color: #1e1b4b !important;
+  letter-spacing: -0.01em;
+
+  // Glassmorphic cards for all panels across all roles
+  .bg-white {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(16px) !important;
+    border-color: rgba(192, 132, 252, 0.4) !important;
+    box-shadow: 0 10px 25px -5px rgba(95, 41, 199, 0.08) !important;
+  }
+
+  // Soft purple backgrounds for subtle cards/headers
+  .bg-slate-50,
+  .bg-slate-100 {
+    background-color: rgba(245, 243, 255, 0.75) !important;
+  }
+
+  // Inputs and selects matching landing page style
+  input:not([type="checkbox"]),
+  select,
+  textarea {
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(192, 132, 252, 0.4) !important;
+    color: #1e1b4b !important;
+
+    &:focus {
+      border-color: #7c3aed !important;
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15) !important;
+    }
+  }
+
+  // Primary buttons with purple gradient
+  button.bg-purple-600 {
+    background: linear-gradient(135deg, #7c3aed 0%, #5f29c7 100%) !important;
+    color: #ffffff !important;
+    border: none !important;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25) !important;
+
+    &:hover {
+      background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%) !important;
+    }
+  }
+
+  // Soft slate button hover overrides
+  button.bg-slate-100 {
+    background-color: rgba(237, 233, 254, 0.9) !important;
+    color: #4c1d95 !important;
+    border: 1px solid rgba(192, 132, 252, 0.3) !important;
+
+    &:hover {
+      background-color: #f3e8ff !important;
+    }
+  }
+
+  // Border accents
+  .border-slate-200,
+  .border-slate-200\/50,
+  .border-slate-100 {
+    border-color: rgba(88, 49, 195, 0.88) !important;
+  }
+
+  // Heading text overrides for high contrast
+  h1, h2, h3, h4, h5, h6 {
+    color: #2e1065 !important;
+  }
+
+  // Table row headers & cells font size enhancements
+  th {
+    background-color: rgba(237, 233, 254, 0.85) !important;
+    color: #3b0764 !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.05em !important;
+    padding: 10px 12px !important;
+  }
+
+  td {
+    font-size: 12.5px !important;
+    padding: 10px 12px !important;
+  }
+
+  // Micro font size scale-ups for better legibility
+  .text-\[9px\] {
+    font-size: 11px !important;
+  }
+
+  .text-\[10px\] {
+    font-size: 11.5px !important;
+  }
+
+  .text-\[11px\] {
+    font-size: 12px !important;
+  }
+}
+
+/* Login Split Card Custom Design Pattern */
+.login-card-container {
+  display: flex;
+  width: 720px;
+  min-height: 480px;
+  max-width: 95vw;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background-color: rgba(127, 122, 255, 0.35);
+  -webkit-backdrop-filter: blur(25px);
+  backdrop-filter: blur(25px);
+  border-radius: 24px;
+  box-shadow: 0px 20px 40px rgba(46, 16, 101, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  margin: 0 auto;
+
+  .left {
+    width: 60%;
+    height: 100%;
+    padding: 32px;
     display: flex;
+    flex-direction: column;
     justify-content: center;
+    position: relative;
+    z-index: 2;
+
+    @media (max-width: 640px) {
+      width: 100%;
+      padding: 24px;
+    }
+  }
+
+  .right {
+    width: 40%;
+    height: 100%;
+    display: flex;
     align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    padding: 20px;
+
+    @media (max-width: 640px) {
+      display: none;
+    }
   }
 
-  .icon {
+  .img {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+      max-height: 360px;
+    }
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 100%;
+    position: relative;
+
+    &::before {
+      position: absolute;
+      content: "";
+      width: 50%;
+      height: 50%;
+      right: -10%;
+      top: 10%;
+      z-index: -1;
+      background: radial-gradient(
+        circle,
+        rgba(194, 13, 170, 0.5) 20%,
+        rgba(26, 186, 235, 0.5) 60%,
+        rgba(26, 186, 235, 0.3) 100%
+      );
+      filter: blur(60px);
+      border-radius: 50%;
+    }
+  }
+
+  .input-block {
+    position: relative;
+    margin-bottom: 20px;
+    width: 100%;
+
+    label {
+      position: absolute;
+      left: 16px;
+      top: 14px;
+      pointer-events: none;
+      color: #64748b;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+
+  .input {
+    background: rgba(255, 255, 255, 0.7);
+    outline: none;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    padding: 14px 16px;
+    width: 100%;
+    display: block;
+    color: #1e293b;
+    font-weight: 700;
+    font-size: 0.9em;
+    backdrop-filter: blur(10px);
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s ease;
+
+    &:focus,
+    &:valid {
+      border-color: #6366f1;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+
+      + label {
+        transform: translateY(-28px) scale(0.85);
+        color: #4f46e5;
+        font-weight: 800;
+        left: 8px;
+      }
+    }
+  }
+
+  .forgot {
+    display: block;
+    margin: 4px 0 16px 0;
+    color: #4f46e5;
+    font-size: 0.8em;
+    font-weight: 700;
+    text-decoration: none;
+    transition: color 0.2s;
+
+    a {
+      color: #4f46e5;
+      text-decoration: none;
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  .login-submit-btn {
+    background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 800;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    width: 100%;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
+  &::after {
     position: absolute;
-    font-size: 20px;
-    transition:
-      opacity 0.4s ease,
-      transform 0.4s ease;
-  }
-
-  .check {
-    opacity: 0;
-    transform: scale(0);
-    color: #4caf50;
-  }
-
-  .cross {
-    opacity: 1;
-    transform: scale(1);
-    color: #f44336;
-  }
-
-  .toggle-input {
-    display: none;
-  }
-
-  .toggle-input:checked + .toggle-container {
-    background: linear-gradient(90deg, #4caf50, #81c784);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  }
-
-  .toggle-input:checked + .toggle-container .toggle {
-    transform: translateX(34px);
-  }
-
-  .toggle-input:checked + .toggle-container .toggle .check {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  .toggle-input:checked + .toggle-container .toggle .cross {
-    opacity: 0;
-    transform: scale(0);
-  }
-
-  .toggle-container:active .toggle {
-    transform: scale(0.95);
+    content: "";
+    width: 60%;
+    height: 60%;
+    right: -20%;
+    bottom: -20%;
+    background: radial-gradient(
+      circle,
+      rgba(157, 173, 203, 0.4) 61%,
+      rgba(99, 122, 159, 0.2) 100%
+    );
+    border-radius: 50%;
+    z-index: -1;
+    filter: blur(40px);
   }
 }

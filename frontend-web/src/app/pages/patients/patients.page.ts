@@ -12,6 +12,20 @@ export class PatientsPage implements OnInit {
   loading: boolean = false;
   searchTerm: string = '';
 
+  showEditPatientModal: boolean = false;
+  selectedPatientForEdit: any = null;
+  showPatientPassword: boolean = false;
+  savingPatient: boolean = false;
+
+  editPatientForm: any = {
+    username: '',
+    email: '',
+    mobile_number: '',
+    blood_group: '',
+    gender: '',
+    password: ''
+  };
+
   get filteredPatients() {
     return this.patientsList.filter(p => {
       const term = this.searchTerm.trim().toLowerCase();
@@ -32,6 +46,10 @@ export class PatientsPage implements OnInit {
     this.loadPatients();
   }
 
+  ionViewWillEnter() {
+    this.loadPatients();
+  }
+
   loadPatients() {
     this.loading = true;
     this.api.get('clinical/patients').subscribe({
@@ -42,6 +60,51 @@ export class PatientsPage implements OnInit {
       error: (err: any) => {
         console.error('Failed to load patients', err);
         this.loading = false;
+      }
+    });
+  }
+
+  openEditPatientModal(patient: any) {
+    this.selectedPatientForEdit = patient;
+    this.showPatientPassword = false;
+    this.editPatientForm = {
+      username: patient.name || '',
+      email: patient.email || '',
+      mobile_number: patient.phone || '',
+      blood_group: patient.blood_group || '',
+      gender: patient.gender || '',
+      password: ''
+    };
+    this.showEditPatientModal = true;
+  }
+
+  savePatientEdit() {
+    if (!this.selectedPatientForEdit) return;
+    this.savingPatient = true;
+
+    const targetUserId = this.selectedPatientForEdit.user_id || this.selectedPatientForEdit.id;
+    const payload: any = {
+      username: this.editPatientForm.username,
+      email: this.editPatientForm.email,
+      mobile_number: this.editPatientForm.mobile_number,
+      blood_group: this.editPatientForm.blood_group,
+      gender: this.editPatientForm.gender
+    };
+    if (this.editPatientForm.password && this.editPatientForm.password.trim() !== '') {
+      payload.password = this.editPatientForm.password;
+    }
+
+    (this.api as any).put(`users/${targetUserId}`, payload).subscribe({
+      next: () => {
+        this.savingPatient = false;
+        alert('Patient profile updated successfully!');
+        this.showEditPatientModal = false;
+        this.selectedPatientForEdit = null;
+        this.loadPatients();
+      },
+      error: (err: any) => {
+        this.savingPatient = false;
+        alert('Failed to update patient profile: ' + (err.error?.detail || err.message));
       }
     });
   }

@@ -39,6 +39,16 @@ export class PatientConsultationsPage implements OnInit {
     }
   }
 
+  ionViewWillEnter() {
+    const idParam = this.route.snapshot.paramMap.get('id');
+    if (idParam) {
+      this.patientId = idParam;
+      this.loadPatientInfo();
+      this.loadConsultations();
+      this.loadCurrentUserRole();
+    }
+  }
+
   loadCurrentUserRole() {
     this.api.get('users/me').subscribe({
       next: (user: any) => {
@@ -54,7 +64,7 @@ export class PatientConsultationsPage implements OnInit {
   loadPatientInfo() {
     this.api.get('clinical/patients').subscribe({
       next: (data: any[]) => {
-        const found = data.find(p => p.id === this.patientId);
+        const found = data.find(p => p.id === this.patientId || p.id.startsWith(this.patientId) || this.patientId.toLowerCase().includes(p.id.slice(0, 8).toLowerCase()));
         if (found) {
           this.patientName = found.name;
         }

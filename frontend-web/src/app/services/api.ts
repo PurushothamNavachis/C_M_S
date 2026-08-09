@@ -6,13 +6,19 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'http://127.0.0.1:8000/api/v1';
+  private get baseUrl(): string {
+    if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.protocol === 'http:') {
+      return 'http://127.0.0.1:8000/api/v1';
+    }
+    return 'https://twenty-dryers-fly.loca.lt/api/v1';
+  }
 
   constructor(private http: HttpClient) { }
 
   private getHeaders(): HttpHeaders {
     let headers = new HttpHeaders();
-    const token = localStorage.getItem('access_token');
+    headers = headers.set('Bypass-Tunnel-Reminder', 'true');
+    const token = sessionStorage.getItem('access_token');
     if (token) {
       headers = headers.set('Authorization', `Bearer ${token}`);
     }

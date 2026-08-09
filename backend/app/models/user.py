@@ -10,6 +10,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(150), unique=True, index=True, nullable=False)
     username: Mapped[str] = mapped_column(String(50), unique=True, index=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    plain_password: Mapped[str | None] = mapped_column(String(255), nullable=True)
     mobile_number: Mapped[str | None] = mapped_column(String(20), nullable=True)
     specialization: Mapped[str | None] = mapped_column(String(150), nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

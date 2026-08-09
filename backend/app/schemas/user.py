@@ -11,6 +11,7 @@ class RoleResponse(RoleBase):
 
 class DoctorProfileResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+    id: str
     specialization: str
     license_number: str
     consultation_fee: float
@@ -26,6 +27,7 @@ class PatientProfileResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: str
     phone: str
+    age: int | None = None
     blood_group: str | None = None
     dob: date
     gender: str
@@ -43,12 +45,36 @@ class UserCreate(UserBase):
     specialization: str | None = None
     qualification: str | None = None
     license_number: str | None = None
-    consultation_fee: float | None = None
-    experience_years: int | None = None
+    consultation_fee: float | int | str | None = None
+    experience_years: float | int | str | None = None
+
+    @model_validator(mode='before')
+    @classmethod
+    def clean_numeric_fields(cls, data: any) -> any:
+        if isinstance(data, dict):
+            fee = data.get("consultation_fee")
+            if fee == "" or fee is None:
+                data["consultation_fee"] = 0.0
+            else:
+                try:
+                    data["consultation_fee"] = float(fee)
+                except (ValueError, TypeError):
+                    data["consultation_fee"] = 0.0
+
+            exp = data.get("experience_years")
+            if exp == "" or exp is None:
+                data["experience_years"] = 0
+            else:
+                try:
+                    data["experience_years"] = int(exp)
+                except (ValueError, TypeError):
+                    data["experience_years"] = 0
+        return data
 
 class UserRegister(UserBase):
     password: str = Field(..., min_length=6, max_length=128)
     password_confirm: str = Field(..., min_length=6, max_length=128)
+    age: int | None = Field(None, ge=0, le=120, description="Age of the patient")
     blood_group: str | None = None
     gender: str | None = None
 
@@ -62,6 +88,7 @@ class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
     id: str
     is_active: bool
+    plain_password: str | None = None
     role: RoleResponse
     doctor: DoctorProfileResponse | None = None
     lab_ac: LabACProfileResponse | None = None

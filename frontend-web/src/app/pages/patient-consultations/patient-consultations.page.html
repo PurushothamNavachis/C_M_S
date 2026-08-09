@@ -1,24 +1,24 @@
 <ion-content>
-  <div class="bg-slate-50 text-slate-800 min-h-screen p-4 md:p-8 space-y-6">
+  <div class="customer-portal-theme text-slate-800 min-h-screen p-4 md:p-8 space-y-6">
     
     <!-- Header with back button -->
     <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/50 pb-4">
       <div class="flex items-center gap-3">
         <button routerLink="/patients" class="px-3.5 py-2 bg-white border border-slate-200 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm hover:bg-slate-50 cursor-pointer">
-          <span>← Back to Patients</span>
+          <span>← Back to Patients Directory</span>
         </button>
         <div>
-          <h1 class="text-lg font-black tracking-tight text-slate-900 flex items-center gap-2">
-            <span>🩺</span> Consultations History
+          <h1 class="text-lg font-black tracking-tight text-purple-950 flex items-center gap-2">
+            <span>🩺</span> Outpatient Consultations & Clinical Reports
           </h1>
           <p class="text-[11px] text-slate-500 font-medium">
-            Patient: <span class="font-bold text-slate-800">{{ patientName || 'Retrieving...' }}</span>
+            Registered Patient Account: <span class="font-bold text-slate-900">{{ patientName || 'Retrieving...' }}</span>
           </p>
         </div>
       </div>
       
-      <button (click)="loadConsultations()" class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-1.5 cursor-pointer">
-        <span>🔄 Refresh History</span>
+      <button (click)="loadConsultations()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-extrabold transition shadow-sm flex items-center gap-1.5 cursor-pointer">
+        <span>🔄 Sync Clinical History</span>
       </button>
     </div>
 

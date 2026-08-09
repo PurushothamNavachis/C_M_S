@@ -46,11 +46,15 @@ class AuthService:
         await self.user_repo.create(new_user)
         
         # Create corresponding Patient profile
+        current_year = date.today().year
+        calculated_dob = date(current_year - schema.age, 1, 1) if schema.age else date(1990, 1, 1)
+
         new_patient = Patient(
             id=str(uuid.uuid4()),
             user_id=new_user.id,
-            dob=date(1990, 1, 1), # Default DOB
-            gender=schema.gender or "Not Specified", # Selected Gender
+            age=schema.age,
+            dob=calculated_dob,
+            gender=schema.gender or "Not Specified",
             blood_group=schema.blood_group,
             phone=schema.mobile_number or "Not Provided"
         )

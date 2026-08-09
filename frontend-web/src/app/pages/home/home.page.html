@@ -1,71 +1,310 @@
 <ion-content [forceOverscroll]="false">
-  <!-- Portal Selector Header with Background Image -->
-  <section class="bg-white border-b border-green-100 flex flex-col items-center">
-    <!-- Image rendered with no overlays/filters and aligned directly below header -->
-    <div class="w-full">
-      <img src="assets/doctor_bg.png" class="w-full h-auto object-contain" alt="Clinic Doctor Background">
-    </div>
+  
+  <!-- Main Wrapper with Purplish / Blueberry Faded Gradient Background -->
+  <div class="min-h-screen bg-gradient-to-b from-[#e4dcf7] via-[#e5dafa] to-[#d6c3fa] text-slate-800 font-sans relative overflow-hidden pb-16">
+    
+    <!-- Abstract Colorful Blurred Blobs behind the central board (as seen in the screenshot) -->
+    <div class="absolute top-[8%] left-[-10%] w-[380px] h-[380px] bg-purple-600/20 rounded-full filter blur-[100px] pointer-events-none z-0 animate-blob-1"></div>
+    <div class="absolute top-[15%] right-[-5%] w-[320px] h-[320px] bg-fuchsia-500/15 rounded-full filter blur-[90px] pointer-events-none z-0 animate-blob-2"></div>
+    <div class="absolute top-[35%] left-[25%] w-[300px] h-[300px] bg-cyan-400/15 rounded-full filter blur-[80px] pointer-events-none z-0 animate-blob-1"></div>
 
-    <!-- Title and Subtitle positioned directly below the image in a clear block -->
-    <div class="max-w-3xl mx-auto space-y-4 py-8 px-6 text-center flex flex-col items-center">
-      <img src="assets/logo.png" class="h-24 w-auto object-contain mb-2" alt="Abijith Clinic Logo">
-      <h1 class="text-3xl md:text-5xl font-black tracking-tight text-slate-900">Abijith Clinic</h1>
-      <p class="text-slate-600 text-sm md:text-base font-semibold leading-relaxed max-w-xl mx-auto">
-        Select a portal gateway below to access specific features and dashboards for each user role.
-      </p>
-    </div>
-  </section>
+    <!-- Orange-magenta glowing bubbles with animations (as seen in the user request snippet) -->
+    <div class="absolute top-[25%] left-[22%] w-[160px] h-[160px] bg-gradient-to-br from-orange-400 to-pink-600 rounded-full border border-white/60 shadow-[inset_10px_0px_20px_#fff] opacity-40 z-0 animate-blob-1 pointer-events-none"></div>
+    <div class="absolute bottom-[35%] right-[22%] w-[90px] h-[90px] bg-gradient-to-br from-orange-300 to-fuchsia-600 rounded-full border border-white/60 shadow-[inset_10px_0px_20px_#fff] opacity-35 z-0 animate-blob-2 pointer-events-none"></div>
 
-  <!-- Button Portals Grid (Glassmorphic Blur style) -->
-  <section class="py-16 px-6 bg-slate-50 relative overflow-hidden">
-    <!-- Continuing background gradient -->
-    <div class="absolute inset-0 bg-gradient-to-b from-white to-slate-50 z-0"></div>
+    <!-- 2. Main Glassmorphic Dashboard Panel (Healthcare central board as in the screenshot) -->
+    <section class="relative z-10 pt-36 px-4 max-w-4xl mx-auto mb-20">
+      <div class="glass-shine-card main-dashboard-card reveal-on-scroll bg-white/20 backdrop-blur-3xl border-2 border-white/45 rounded-[2.5rem] shadow-2xl shadow-indigo-950/5 p-6 md:p-8 flex flex-col items-stretch relative overflow-visible">
+        
+        <!-- Embedded Mini Header Bar inside Glassmorphic Board -->
+        <div class="flex items-center justify-center border-b border-white/20 pb-4 mb-10">
+          <nav class="flex items-center space-x-6 text-xs font-bold text-slate-700">
+            <a (click)="scrollToSection('about-section')" class="hover:text-blue-600 cursor-pointer transition">Home</a>
+            <a (click)="scrollToSection('services-section')" class="hover:text-blue-600 cursor-pointer transition">Services</a>
+            <a (click)="scrollToSection('about-section')" class="hover:text-blue-600 cursor-pointer transition">Visits</a>
+            <a (click)="scrollToSection('contact-section')" class="hover:text-blue-600 cursor-pointer transition">Doctors</a>
+          </nav>
+        </div>
 
-    <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-      <!-- Administration Button Gateway -->
-      <button routerLink="/administration" class="flex flex-col items-center justify-center p-8 bg-white/40 backdrop-blur-md border border-white/60 hover:border-green-500/50 hover:bg-white/80 rounded-2xl transition space-y-3 group shadow-lg shadow-slate-100/50">
-        <span class="text-4xl group-hover:scale-110 transition duration-300">⚙️</span>
-        <span class="text-sm uppercase font-extrabold tracking-wider text-slate-700 group-hover:text-green-700">Administration</span>
-      </button>
+        <!-- Huge Center Typography "Healthcare" -->
+        <div class="text-center py-6 relative">
+          <h2 class="text-6xl md:text-9xl font-black tracking-tighter text-slate-900 opacity-85 select-none font-sans filter drop-shadow-sm">
+            Healthcare
+          </h2>
+          <!-- Tiny floating decorative card mimicking the screenshot details -->
+          <div class="absolute right-0 bottom-0 bg-white/30 backdrop-blur-lg border-2 border-white/45 p-3 rounded-xl shadow-sm text-left max-w-[200px] hidden md:block">
+            <span class="text-[9px] uppercase tracking-wider text-slate-400 block font-bold">Total Operations</span>
+            <span class="font-bold text-xs text-slate-800">100% Reliable Clinic Care</span>
+          </div>
+        </div>
 
-      <!-- Patient Button Gateway -->
-      <button routerLink="/patient" class="flex flex-col items-center justify-center p-8 bg-white/40 backdrop-blur-md border border-white/60 hover:border-green-500/50 hover:bg-white/80 rounded-2xl transition space-y-3 group shadow-lg shadow-slate-100/50">
-        <span class="text-4xl group-hover:scale-110 transition duration-300">🩹</span>
-        <span class="text-sm uppercase font-extrabold tracking-wider text-slate-700 group-hover:text-green-700">Customer Portal</span>
-      </button>
-    </div>
-  </section>
+        <!-- Bottom Form Selectors bar integrated inside the Glassmorphic card -->
+        <div class="bg-white/30 backdrop-blur-xl border-2 border-white/40 p-4 rounded-3xl shadow-sm flex flex-col md:flex-row items-stretch md:items-center gap-4 mt-8 relative z-30 overflow-visible">
+          
+          <div class="flex-1 flex flex-col space-y-1">
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Choose Service</span>
+            <select 
+              [(ngModel)]="selectedGateway" 
+              class="w-full bg-transparent px-1 py-1.5 text-xs font-bold text-slate-800 outline-none border-none cursor-pointer"
+            >
+              <option value="consultation">Doctor Consultation</option>
+              <option value="lab_test">Lab Test Requirement</option>
+            </select>
+          </div>
 
-  <!-- Static Information Sections (Just Headings and Summaries) -->
-  <section class="py-16 bg-slate-50 border-t border-slate-200/60 px-6 text-slate-800">
-    <div class="max-w-4xl mx-auto space-y-12">
-      
-      <!-- About Section -->
-      <div id="about-section" class="space-y-4 scroll-mt-24">
-        <h2 class="text-2xl font-black text-green-700">About Abijith Clinic</h2>
-        <p class="text-slate-600 text-sm leading-relaxed">
-          Our clinic provides high-standard outpatient clinical treatments, diagnostic path-labs, and pharmacy services. Our modern digital platform enables quick patient onboarding, real-time doctor availability checking, and instant prescription access.
-        </p>
+          <div class="h-6 w-px bg-slate-200 hidden md:block"></div>
+
+          <div class="flex-1 flex flex-col space-y-1">
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Choose Date</span>
+            <input 
+              type="date" 
+              [(ngModel)]="bookingDate" 
+              class="w-full bg-transparent px-1 py-1 text-xs font-bold text-slate-800 outline-none border-none cursor-pointer"
+            />
+          </div>
+
+          <div class="h-6 w-px bg-slate-200 hidden md:block"></div>
+
+          <!-- Field 3: Select Hour -->
+          <div class="flex-1 flex flex-col space-y-1">
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Select Hour</span>
+            <select 
+              [(ngModel)]="bookingHour" 
+              class="w-full bg-transparent px-1 py-1.5 text-xs font-bold text-slate-800 outline-none border-none cursor-pointer"
+            >
+              <option value="10 AM">10 AM</option>
+              <option value="11 AM">11 AM</option>
+              <option value="12 PM">12 PM</option>
+              <option value="1 PM">1 PM</option>
+              <option value="2 PM">2 PM</option>
+              <option value="3 PM">3 PM</option>
+              <option value="4 PM">4 PM</option>
+              <option value="5 PM">5 PM</option>
+              <option value="6 PM">6 PM</option>
+            </select>
+          </div>
+
+          <div class="h-6 w-px bg-slate-200 hidden md:block"></div>
+
+          <!-- Field 4: Select Minutes -->
+          <div class="flex-1 flex flex-col space-y-1">
+            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest ml-1">Select Minutes</span>
+            <select 
+              [(ngModel)]="bookingMinute" 
+              class="w-full bg-transparent px-1 py-1.5 text-xs font-bold text-slate-800 outline-none border-none cursor-pointer"
+            >
+              <option value="00">00 mins</option>
+              <option value="15">15 mins</option>
+              <option value="30">30 mins</option>
+              <option value="45">45 mins</option>
+            </select>
+          </div>
+
+          <div class="shrink-0 flex items-center justify-end">
+            <!-- Round Blue selector Button -->
+            <button 
+              (click)="navigateToPortal()" 
+              class="w-12 h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center transition shadow-md shadow-blue-600/20 cursor-pointer"
+              title="Proceed to Portal"
+            >
+              <span class="text-lg">➔</span>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 3. Direct Portals Shortcut Section -->
+    <section id="portals-section" class="relative z-10 px-4 max-w-4xl mx-auto mb-20 scroll-mt-20">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Patient Gateway Card -->
+        <div class="glass-shine-card reveal-on-scroll stagger-1 bg-white/30 backdrop-blur-xl border-2 border-white/50 p-6 rounded-3xl shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between group">
+          <div class="space-y-1">
+            <h3 class="font-extrabold text-sm text-slate-800">Customer Portal</h3>
+            <p class="text-[10px] text-slate-400">Book slots, check diagnostics & records</p>
+          </div>
+          <button routerLink="/patient" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-full transition shadow-sm">
+            Access Portal
+          </button>
+        </div>
+
+        <!-- Admin Gateway Card -->
+        <div class="glass-shine-card reveal-on-scroll stagger-2 bg-white/30 backdrop-blur-xl border-2 border-white/50 p-6 rounded-3xl shadow-sm hover:shadow-md transition duration-300 flex items-center justify-between group">
+          <div class="space-y-1">
+            <h3 class="font-extrabold text-sm text-slate-800">Administration Portal</h3>
+            <p class="text-[10px] text-slate-400">Manage schedules, staff & queue</p>
+          </div>
+          <button routerLink="/administration" class="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold rounded-full transition shadow-sm">
+            Access Dashboard
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Our Services Section with Full Width Original Background Image -->
+    <section id="services-section" class="relative z-10 py-16 md:py-24 px-6 scroll-mt-20 overflow-hidden bg-cover bg-center bg-no-repeat w-full md:aspect-[16/9] flex flex-col justify-start" style="background-image: url('assets/services_bg.png');">
+
+      <div class="relative z-10 max-w-5xl mx-auto text-center space-y-2 mb-8 px-4 md:px-12 reveal-on-scroll">
+        <h2 class="text-2xl md:text-3xl font-black text-slate-900">Our Services</h2>
+        <p class="text-slate-500 text-xs font-semibold">With World-class Preventive, Prescriptive & Curative Medical Practices</p>
       </div>
 
-      <!-- Services Section -->
-      <div id="services-section" class="space-y-4 scroll-mt-24">
-        <h2 class="text-2xl font-black text-green-700">Clinical Services</h2>
-        <p class="text-slate-600 text-sm leading-relaxed">
-          Our departments include General Medicine Consultation, Cardiology Testing, Pediatric Wellness, and Orthopedic Care. Walk-in and online check-in queues are managed digitally through the centralized front-desk portal.
-        </p>
-      </div>
+      <div class="relative z-10 max-w-5xl ml-0 mr-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 px-4 md:px-12" style="margin-top: 190px;">
+        
+        <!-- Service Card 1 -->
+        <div class="glass-shine-card reveal-on-scroll stagger-1 bg-white/30 backdrop-blur-xl border-2 border-white/50 rounded-2xl p-5 shadow-sm hover:shadow-md hover:scale-[1.02] hover:bg-white/45 transition duration-300 flex flex-col items-start space-y-3 relative overflow-hidden group">
+          <span class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold shadow-xs">
+            🩺
+          </span>
+          <div>
+            <h3 class="font-extrabold text-xs text-slate-900 group-hover:text-blue-600 transition uppercase tracking-wider">General Physician</h3>
+            <p class="text-[10px] text-slate-400 mt-1 font-medium">Family medicine, viral fever treatment and health checks</p>
+          </div>
+        </div>
 
-      <!-- Contact Section -->
-      <div id="contact-section" class="space-y-4 scroll-mt-24">
-        <h2 class="text-2xl font-black text-green-700">Contact & Support</h2>
-        <p class="text-slate-600 text-sm leading-relaxed">
-          For technical issues regarding login or patient card issuance, contact the front-desk reception desk.
-          <br>
-          📍 Address: 123 Healthway Avenue, Suite 100 | 📞 Phone: +1-800-CLINIC-HELP
-        </p>
-      </div>
+        <!-- Service Card 2 -->
+        <div class="glass-shine-card reveal-on-scroll stagger-2 bg-white/30 backdrop-blur-xl border-2 border-white/50 rounded-2xl p-5 shadow-sm hover:shadow-md hover:scale-[1.02] hover:bg-white/45 transition duration-300 flex flex-col items-start space-y-3 relative overflow-hidden group">
+          <span class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold shadow-xs">
+            🧪
+          </span>
+          <div>
+            <h3 class="font-extrabold text-xs text-slate-900 group-hover:text-blue-600 transition uppercase tracking-wider">Diagnostic Lab</h3>
+            <p class="text-[10px] text-slate-400 mt-1 font-medium">CBC, lipid profile and metabolic blood test screenings</p>
+          </div>
+        </div>
 
+        <!-- Service Card 3 -->
+        <div class="glass-shine-card reveal-on-scroll stagger-3 bg-white/30 backdrop-blur-xl border-2 border-white/50 rounded-2xl p-5 shadow-sm hover:shadow-md hover:scale-[1.02] hover:bg-white/45 transition duration-300 flex flex-col items-start space-y-3 relative overflow-hidden group">
+          <span class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold shadow-xs">
+            💊
+          </span>
+          <div>
+            <h3 class="font-extrabold text-xs text-slate-900 group-hover:text-blue-600 transition uppercase tracking-wider">Pharmacy</h3>
+            <p class="text-[10px] text-slate-400 mt-1 font-medium">Digital prescription fulfillment and instant medicines</p>
+          </div>
+        </div>
+
+        <!-- Service Card 4 -->
+        <div class="glass-shine-card reveal-on-scroll stagger-4 bg-white/30 backdrop-blur-xl border-2 border-white/50 rounded-2xl p-5 shadow-sm hover:shadow-md hover:scale-[1.02] hover:bg-white/45 transition duration-300 flex flex-col items-start space-y-3 relative overflow-hidden group">
+          <span class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold shadow-xs">
+            ❤️
+          </span>
+          <div>
+            <h3 class="font-extrabold text-xs text-slate-900 group-hover:text-blue-600 transition uppercase tracking-wider">Cardiology</h3>
+            <p class="text-[10px] text-slate-400 mt-1 font-medium">Electrocardiogram (ECG), Echo, and heart diagnostics</p>
+          </div>
+        </div>
+
+        <!-- Service Card 5 -->
+        <div class="glass-shine-card reveal-on-scroll stagger-1 bg-white/30 backdrop-blur-xl border-2 border-white/50 rounded-2xl p-5 shadow-sm hover:shadow-md hover:scale-[1.02] hover:bg-white/45 transition duration-300 flex flex-col items-start space-y-3 relative overflow-hidden group">
+          <span class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold shadow-xs">
+            👶
+          </span>
+          <div>
+            <h3 class="font-extrabold text-xs text-slate-900 group-hover:text-blue-600 transition uppercase tracking-wider">Pediatric care</h3>
+            <p class="text-[10px] text-slate-400 mt-1 font-medium">Child growth tracking, vaccinations and checkups</p>
+          </div>
+        </div>
+
+        <!-- Service Card 6 -->
+        <div class="glass-shine-card reveal-on-scroll stagger-2 bg-white/30 backdrop-blur-xl border-2 border-white/50 rounded-2xl p-5 shadow-sm hover:shadow-md hover:scale-[1.02] hover:bg-white/45 transition duration-300 flex flex-col items-start space-y-3 relative overflow-hidden group">
+          <span class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold shadow-xs">
+            🦴
+          </span>
+          <div>
+            <h3 class="font-extrabold text-xs text-slate-900 group-hover:text-blue-600 transition uppercase tracking-wider">Orthopedic</h3>
+            <p class="text-[10px] text-slate-400 mt-1 font-medium">Joint sprains, arthritis support and bone health checks</p>
+          </div>
+        </div>
+
+        <!-- Service Card 7 -->
+        <div class="glass-shine-card reveal-on-scroll stagger-3 bg-white/30 backdrop-blur-xl border-2 border-white/50 rounded-2xl p-5 shadow-sm hover:shadow-md hover:scale-[1.02] hover:bg-white/45 transition duration-300 flex flex-col items-start space-y-3 relative overflow-hidden group">
+          <span class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold shadow-xs">
+            🔬
+          </span>
+          <div>
+            <h3 class="font-extrabold text-xs text-slate-900 group-hover:text-blue-600 transition uppercase tracking-wider">Diabetology</h3>
+            <p class="text-[10px] text-slate-400 mt-1 font-medium">Blood sugar logging, diet plan and insulin checks</p>
+          </div>
+        </div>
+
+        <!-- Service Card 8 -->
+        <div class="glass-shine-card reveal-on-scroll stagger-4 bg-white/30 backdrop-blur-xl border-2 border-white/50 rounded-2xl p-5 shadow-sm hover:shadow-md hover:scale-[1.02] hover:bg-white/45 transition duration-300 flex flex-col items-start space-y-3 relative overflow-hidden group">
+          <span class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-xs font-bold shadow-xs">
+            🦷
+          </span>
+          <div>
+            <h3 class="font-extrabold text-xs text-slate-900 group-hover:text-blue-600 transition uppercase tracking-wider">Dentist care</h3>
+            <p class="text-[10px] text-slate-400 mt-1 font-medium">Tooth cleaning, fillings and orthodontic procedures</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Grid Pattern Section Below Image Section -->
+    <div class="grid-wrapper relative overflow-hidden pt-8 pb-12">
+
+      <!-- 5. About & Mission Statement Section -->
+      <section id="about-section" class="relative z-10 py-12 px-6 scroll-mt-20">
+        <div class="hover-pop-card bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-3xl p-8 max-w-4xl mx-auto space-y-4 shadow-sm reveal-on-scroll">
+          <h2 class="text-xl font-black text-slate-950">About Abijith Clinic</h2>
+          <p class="text-slate-600 text-xs md:text-sm leading-relaxed font-semibold">
+            Our clinic provides high-standard outpatient clinical treatments, diagnostic path-labs, and pharmacy services. Our modern digital platform enables quick patient onboarding, real-time doctor availability checking, and instant prescription access. The front-desk queues are managed digitally to prevent delays and optimize patient waiting times.
+          </p>
+        </div>
+      </section>
+
+      <!-- 6. Footer Section (Matching the screenshot layout bottom) -->
+      <footer id="contact-section" class="relative z-10 pt-16 pb-8 px-6 border-t border-slate-200/60 max-w-4xl mx-auto text-xs text-slate-500 font-medium scroll-mt-20 reveal-on-scroll">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+          <div class="space-y-3">
+            <h4 class="font-extrabold text-slate-800">Contact Us</h4>
+            <p class="leading-relaxed">
+              📍 123 Healthway Avenue, Suite 100<br>
+              📞 +1-800-CLINIC-HELP<br>
+              ✉️ contact@abijithclinic.com
+            </p>
+          </div>
+
+          <div class="space-y-3">
+            <h4 class="font-extrabold text-slate-800">Clinical Portals</h4>
+            <ul class="space-y-1.5">
+              <li><a routerLink="/patient" class="hover:text-blue-600 transition">Customer Portal</a></li>
+              <li><a routerLink="/administration" class="hover:text-blue-600 transition">Receptionist Dashboard</a></li>
+              <li><a routerLink="/administration" class="hover:text-blue-600 transition">Doctor Dashboard</a></li>
+            </ul>
+          </div>
+
+          <div class="space-y-3">
+            <h4 class="font-extrabold text-slate-800">Specializations</h4>
+            <ul class="space-y-1.5">
+              <li>Cardiology Testing</li>
+              <li>General Medicine</li>
+              <li>Pediatric Diagnostics</li>
+              <li>Pathological Blood tests</li>
+            </ul>
+          </div>
+
+          <div class="space-y-3">
+            <h4 class="font-extrabold text-slate-800">Follow Us</h4>
+            <p class="leading-relaxed">Check out our latest medical news and announcements on our channels.</p>
+            <div class="flex items-center space-x-3 text-sm text-slate-600">
+              <span class="hover:text-blue-600 cursor-pointer">🌐</span>
+              <span class="hover:text-blue-600 cursor-pointer">💬</span>
+              <span class="hover:text-blue-600 cursor-pointer">📞</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t border-slate-200/60 pt-6 text-center text-[10px] text-slate-400">
+          <p>© 2026 Abijith Clinic. Designed with premium glassmorphism. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
-  </section>
+
+  </div>
+
 </ion-content>

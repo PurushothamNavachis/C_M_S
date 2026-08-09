@@ -1,5 +1,5 @@
 from datetime import date
-from sqlalchemy import String, ForeignKey, Date
+from sqlalchemy import String, ForeignKey, Date, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.base import Base
 
@@ -8,6 +8,7 @@ class Patient(Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, index=True)
     user_id: Mapped[str] = mapped_column(String(36), ForeignKey("users.id", ondelete="CASCADE"), unique=True, nullable=False)
+    age: Mapped[int | None] = mapped_column(Integer, nullable=True)
     dob: Mapped[date] = mapped_column(Date, nullable=False)
     gender: Mapped[str] = mapped_column(String(20), nullable=False)
     blood_group: Mapped[str] = mapped_column(String(10), nullable=True)
@@ -15,6 +16,7 @@ class Patient(Base):
     address: Mapped[str] = mapped_column(String(255), nullable=True)
     emergency_contact_name: Mapped[str] = mapped_column(String(100), nullable=True)
     emergency_contact_phone: Mapped[str] = mapped_column(String(20), nullable=True)
+    booking_source: Mapped[str] = mapped_column(String(50), default="Frontdesk", nullable=True)
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="patient")

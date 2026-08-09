@@ -2,16 +2,12 @@ import sqlite3
 import fitz  # PyMuPDF
 import os
 
-DB_PATH = "cms_db.sqlite"
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cms_db.sqlite")
 TEMPLATE_PATH = r"C:\Users\milaa\Desktop\Navachis\C_M_S\pdf\empty_report.pdf"
 OUTPUT_DIR = r"C:\Users\milaa\Desktop\Navachis\C_M_S\pdf\generated_reports"
 
 if not os.path.exists(OUTPUT_DIR):
     os.makedirs(OUTPUT_DIR)
-
-conn = sqlite3.connect(DB_PATH)
-conn.row_factory = sqlite3.Row
-cursor = conn.cursor()
 
 def add_new_page(doc, template_path):
     temp_doc = fitz.open(template_path)
@@ -64,24 +60,32 @@ def generate_single_consultation_pdf(consult_id: str):
     JOIN users pu ON p.user_id = pu.id
     LEFT JOIN doctors d ON a.doctor_id = d.id
     LEFT JOIN users du ON d.user_id = du.id
-    WHERE c.id = ?
+    WHERE c.id = ? OR c.appointment_id = ?
+    ORDER BY c.updated_at DESC, c.created_at DESC
+    LIMIT 1
     """
-    cursor.execute(query, (consult_id,))
+    cursor.execute(query, (consult_id, consult_id))
     row = cursor.fetchone()
     if not row:
         conn.close()
         return None
 
-    doc = fitz.open(TEMPLATE_PATH)
-    page = doc[0]
+    doc = fitz.open()
+    page = doc.new_page(width=595, height=842)
+    logo_path = r"C:\Users\milaa\Desktop\Navachis\C_M_S\frontend-web\src\assets\logo.png"
+    if os.path.exists(logo_path):
+        page.insert_image(fitz.Rect(40, 25, 170, 70), filename=logo_path)
 
     # Top Right Header Info (Customer ID & Date)
     cust_id_str = f"Customer ID: #{row['patient_id'][:8].upper()}"
     date_str = f"Date: {row['appointment_date']}"
-    page.insert_text(fitz.Point(380, 65), cust_id_str, fontname="Helvetica-Bold", fontsize=10)
-    page.insert_text(fitz.Point(380, 78), date_str, fontname="Helvetica", fontsize=10)
+    page.insert_text(fitz.Point(380, 45), cust_id_str, fontname="Helvetica-Bold", fontsize=10)
+    page.insert_text(fitz.Point(380, 60), date_str, fontname="Helvetica", fontsize=10)
 
-    y = 160
+    # Top Header Divider Line
+    page.draw_line(fitz.Point(40, 80), fitz.Point(555, 80), color=(0.1, 0.1, 0.1), width=1.5)
+
+    y = 110
 
     # Header
     page, y = write_text(page, doc, "CUSTOMER REQUEST - CONSULT", 200, y, bold=True, size=14)
@@ -102,39 +106,130 @@ def generate_single_consultation_pdf(consult_id: str):
     page, y = write_text(page, doc, f"Gender: {row['gender']}", left_x, y)
     page, y = write_text(page, doc, f"Contact: {row['patient_phone']}", left_x, y)
     
-    y += 30
-
-    # Prescriptions
-    page, y = write_text(page, doc, "Prescriptions -", left_x, y, bold=True)
-    cursor.execute("""
-        SELECT m.name as medication_name, pi.dosage, pi.duration_days 
-        FROM prescriptions pr
-        JOIN prescription_items pi ON pr.id = pi.prescription_id
-        JOIN medicines m ON pi.medicine_id = m.id
-        WHERE pr.consultation_id = ?
-    """, (row['consult_id'],))
-    prescriptions = cursor.fetchall()
-    if prescriptions:
-        for p in prescriptions:
-            page, y = write_text(page, doc, f"- {p['medication_name']} | {p['dosage']} | {p['duration_days']} days", left_x + 10, y)
     y += 15
 
-    # Doctor Notes
-    page, y = write_text(page, doc, "Doctor Notes -", left_x, y, bold=True)
-    if row['doctor_notes']:
-        page, y = insert_wrapped_text(page, doc, row['doctor_notes'], left_x, y)
-    y += 10
+    # ==========================================
+    # SECTION 1: CUSTOMER ENTRIES
+    # ==========================================
+    page, y = write_text(page, doc, "1. CUSTOMER ENTRIES", left_x, y, bold=True, size=12)
+    y += 4
 
-    # Symptoms
-    page, y = write_text(page, doc, "Symptoms -", left_x, y, bold=True)
-    if row['symptoms']:
-        page, y = insert_wrapped_text(page, doc, row['symptoms'], left_x, y)
-    y += 10
+    # Parse Customer Symptoms & Notes
+    raw_symptoms = row['symptoms'] or ""
+    cust_symptoms = "None"
+    cust_notes = "None"
 
-    # Diagnosis
-    page, y = write_text(page, doc, "Diagnosis -", left_x, y, bold=True)
-    if row['diagnosis']:
-        page, y = insert_wrapped_text(page, doc, row['diagnosis'], left_x, y)
+    if " | Note: " in raw_symptoms:
+        parts = raw_symptoms.split(" | Note: ")
+        if parts[0].strip() and parts[0].strip() != "None reported":
+            cust_symptoms = parts[0].strip()
+        if parts[1].strip() and parts[1].strip().lower() not in ["none", "null"]:
+            cust_notes = parts[1].strip()
+    elif raw_symptoms.startswith("Note: "):
+        note_val = raw_symptoms.replace("Note: ", "").strip()
+        if note_val and note_val.lower() not in ["none", "null"]:
+            cust_notes = note_val
+    elif raw_symptoms.strip() and raw_symptoms.strip() != "None reported" and raw_symptoms.strip() != "General Walk-in Consultation":
+        cust_symptoms = raw_symptoms.strip()
+
+    if cust_notes == "None" and row['doctor_notes']:
+        dn = row['doctor_notes']
+        if "Patient Note:" in dn:
+            p_note = dn.split("Patient Note:")[1].split("|")[0].split("\n")[0].strip()
+            if p_note and p_note.lower() not in ["none", "null", ""]:
+                cust_notes = p_note
+
+    page, y = write_text(page, doc, "Symptoms:", left_x + 10, y, bold=True, size=10)
+    page, y = insert_wrapped_text(page, doc, cust_symptoms, left_x + 20, y, size=10)
+    y += 4
+
+    page, y = write_text(page, doc, "Notes to the Doctor:", left_x + 10, y, bold=True, size=10)
+    page, y = insert_wrapped_text(page, doc, cust_notes, left_x + 20, y, size=10)
+    y += 15
+
+    # ==========================================
+    # SECTION 2: DOCTOR PRESCRIPTION
+    # ==========================================
+    page, y = write_text(page, doc, "2. DOCTOR PRESCRIPTION", left_x, y, bold=True, size=12)
+    y += 4
+
+    # 1. Diagnosis / Notes
+    raw_diag = (row['diagnosis'] or "").strip()
+    doc_diagnosis = raw_diag if (raw_diag and raw_diag.lower() != "pending consultation") else "None"
+    page, y = write_text(page, doc, "Diagnosis / Notes:", left_x + 10, y, bold=True, size=10)
+    page, y = insert_wrapped_text(page, doc, doc_diagnosis, left_x + 20, y, size=10)
+    y += 4
+
+    # 2. Medication Details & Lab Tests from prescriptions table
+    cursor.execute("SELECT notes FROM prescriptions WHERE consultation_id = ?", (row['consult_id'],))
+    p_rows = cursor.fetchall()
+    medication_list = []
+    prescribed_lab_tests = []
+    
+    for pr in p_rows:
+        if pr and pr['notes']:
+            text = pr['notes'].strip()
+            if "LAB_TESTS:" in text:
+                parts = text.split("LAB_TESTS:")
+                if parts[0].strip() and not parts[0].strip().startswith("Prescription & Clinical Directions"):
+                    medication_list.append(parts[0].strip())
+                for t in parts[1].strip().split(","):
+                    t_clean = t.strip()
+                    if t_clean and t_clean not in prescribed_lab_tests:
+                        prescribed_lab_tests.append(t_clean)
+            elif text and not text.startswith("Prescription & Clinical Directions"):
+                medication_list.append(text)
+
+    doc_medications = "\n".join(medication_list) if medication_list else "None"
+    page, y = write_text(page, doc, "Medication Details:", left_x + 10, y, bold=True, size=10)
+    page, y = insert_wrapped_text(page, doc, doc_medications, left_x + 20, y, size=10)
+    y += 4
+
+    # 3. Lab Tests (selected by the doctor for this specific patient)
+    lab_tests_list = []
+    for t_clean in prescribed_lab_tests:
+        if t_clean and t_clean not in lab_tests_list:
+            lab_tests_list.append(t_clean)
+
+    cursor.execute("""
+        SELECT DISTINCT lt.test_name 
+        FROM lab_reports lr
+        JOIN laboratory_tests lt ON lr.test_id = lt.id
+        WHERE lr.patient_id = ?
+    """, (row['patient_id'],))
+    db_tests = cursor.fetchall()
+    for t in db_tests:
+        if t['test_name'] and t['test_name'] not in lab_tests_list:
+            lab_tests_list.append(t['test_name'])
+
+    page, y = write_text(page, doc, "Lab Tests:", left_x + 10, y, bold=True, size=10)
+    if lab_tests_list:
+        for t_name in lab_tests_list:
+            page, y = write_text(page, doc, f"- {t_name}", left_x + 20, y, size=10)
+    else:
+        page, y = write_text(page, doc, "None", left_x + 20, y, size=10)
+    y += 4
+
+    # 4. Directions for Use
+    raw_doc_notes = (row['doctor_notes'] or "").strip()
+    doc_directions = "None"
+    if "\nDirections:" in raw_doc_notes:
+        dirs = raw_doc_notes.split("\nDirections:")[1].strip()
+        if dirs and dirs.lower() != "none":
+            doc_directions = dirs
+    elif raw_doc_notes and "Follow doctor directions" not in raw_doc_notes:
+        if "Patient Note:" in raw_doc_notes and "| Preference:" in raw_doc_notes:
+            pref_split = raw_doc_notes.split("| Preference:")
+            if len(pref_split) > 1 and pref_split[1].strip():
+                clean_pref_rest = pref_split[1].strip()
+                lines = [l.strip() for l in clean_pref_rest.split("\n") if l.strip()]
+                if len(lines) > 1 and lines[1] and lines[1] not in ["cancel", "reschedule"]:
+                    doc_directions = lines[1]
+        elif not raw_doc_notes.startswith("Patient Note:"):
+            doc_directions = raw_doc_notes
+
+    page, y = write_text(page, doc, "Directions for Use:", left_x + 10, y, bold=True, size=10)
+    page, y = insert_wrapped_text(page, doc, doc_directions, left_x + 20, y, size=10)
 
     pdf_filename = f"Consultation_{row['patient_name'].replace(' ', '_')}_{row['consult_id'][:4]}.pdf"
     output_path = os.path.join(OUTPUT_DIR, pdf_filename)
@@ -167,18 +262,24 @@ def generate_single_lab_report_pdf(patient_id: str):
         conn.close()
         return None
 
-    doc = fitz.open(TEMPLATE_PATH)
-    page = doc[0]
+    doc = fitz.open()
+    page = doc.new_page(width=595, height=842)
+    logo_path = r"C:\Users\milaa\Desktop\Navachis\C_M_S\frontend-web\src\assets\logo.png"
+    if os.path.exists(logo_path):
+        page.insert_image(fitz.Rect(40, 25, 170, 70), filename=logo_path)
 
     req_date = str(p['req_date']) if p['req_date'] else '2026-07-13'
 
     # Top Right Header Info (Customer ID & Date)
     cust_id_str = f"Customer ID: #{p['patient_id'][:8].upper()}"
     date_str = f"Date: {req_date}"
-    page.insert_text(fitz.Point(380, 65), cust_id_str, fontname="Helvetica-Bold", fontsize=10)
-    page.insert_text(fitz.Point(380, 78), date_str, fontname="Helvetica", fontsize=10)
+    page.insert_text(fitz.Point(380, 45), cust_id_str, fontname="Helvetica-Bold", fontsize=10)
+    page.insert_text(fitz.Point(380, 60), date_str, fontname="Helvetica", fontsize=10)
 
-    y = 160
+    # Top Header Divider Line
+    page.draw_line(fitz.Point(40, 80), fitz.Point(555, 80), color=(0.1, 0.1, 0.1), width=1.5)
+
+    y = 110
 
     # Header
     page, y = write_text(page, doc, "CUSTOMER REQUEST - LAB TEST", 200, y, bold=True, size=14)
